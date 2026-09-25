@@ -1,0 +1,115 @@
+:root {
+  --sm-navy: #1f3a5f;
+  --sm-navy-2: #16304f;
+  --sm-accent: #2a9d8f;
+  --sm-bg: #f3f5f8;
+  --sm-border: #dde3ea;
+  --sm-muted: #6b7a8c;
+  --sm-sidebar-w: 256px;
+}
+
+body { background: var(--sm-bg); font-size: .925rem; color: #1d2733; }
+a { text-decoration: none; }
+.text-muted-2 { color: var(--sm-muted); }
+
+/* --- Yon panel --------------------------------------------------------- */
+.sm-sidebar {
+  width: var(--sm-sidebar-w); background: var(--sm-navy); color: #dbe4ef; position: fixed; inset: 0 auto 0 0;
+  overflow-y: auto; z-index: 1040; display: flex; flex-direction: column;
+}
+.sm-brand { padding: 1rem 1.1rem; border-bottom: 1px solid rgba(255,255,255,.08); color: #fff; }
+.sm-brand .title { font-weight: 700; font-size: 1.05rem; letter-spacing: .2px; }
+.sm-brand .sub { font-size: .72rem; color: #9fb3c8; line-height: 1.2; }
+.sm-nav { padding: .5rem .5rem 1.5rem; }
+.sm-nav .section { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: #8aa0b8; padding: .9rem .75rem .3rem; }
+.sm-nav a { display: flex; align-items: center; gap: .6rem; color: #dbe4ef; padding: .5rem .75rem; border-radius: .45rem; margin-bottom: 1px; }
+.sm-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
+.sm-nav a.active { background: var(--sm-accent); color: #fff; }
+.sm-nav a .bi { font-size: 1.05rem; width: 1.2rem; text-align: center; }
+.sm-nav .badge { margin-left: auto; }
+
+.sm-main { margin-left: var(--sm-sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+.sm-topbar {
+  background: #fff; border-bottom: 1px solid var(--sm-border); padding: .55rem 1.25rem; position: sticky; top: 0; z-index: 1030;
+  display: flex; align-items: center; gap: .75rem;
+}
+.sm-content { padding: 1.25rem; flex: 1; }
+.sm-footer { padding: .75rem 1.25rem; font-size: .75rem; color: var(--sm-muted); }
+
+@media (max-width: 991.98px) {
+  .sm-sidebar { transform: translateX(-100%); transition: transform .2s ease; }
+  .sm-sidebar.show { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.3); }
+  .sm-main { margin-left: 0; }
+  .sm-content { padding: .9rem; }
+  .kpi .card-body { padding: .7rem; gap: .6rem; }
+  .kpi .icon { width: 36px; height: 36px; font-size: 1.1rem; }
+  .kpi .value { font-size: 1.3rem; }
+  .kpi .label { font-size: .74rem; }
+}
+
+/* --- Kartalar ------------------------------------------------------------ */
+.card { border: 1px solid var(--sm-border); border-radius: .6rem; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+.card-header { background: #fff; border-bottom: 1px solid var(--sm-border); font-weight: 600; }
+.page-title { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.page-head { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+
+.kpi { display: block; color: inherit; height: 100%; transition: transform .1s ease, box-shadow .1s ease; }
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,24,40,.08); color: inherit; }
+.kpi .card-body { display: flex; gap: .85rem; align-items: center; padding: .9rem 1rem; }
+.kpi .icon { width: 44px; height: 44px; border-radius: .6rem; display: grid; place-items: center; font-size: 1.3rem; flex: none; }
+.kpi .value { font-size: 1.55rem; font-weight: 700; line-height: 1.1; }
+.kpi .label { font-size: .8rem; color: var(--sm-muted); line-height: 1.2; overflow-wrap: anywhere; hyphens: auto; }
+.tone-primary .icon { background: #e3ecf8; color: #1f5fae; }
+.tone-info .icon { background: #e0f3f5; color: #1b7f8c; }
+.tone-success .icon { background: #e2f4ea; color: #1f8a4c; }
+.tone-secondary .icon { background: #eceff3; color: #4b5b6e; }
+.tone-warning .icon { background: #fff3dc; color: #b26b00; }
+.tone-danger .icon { background: #fde6e6; color: #c0392b; }
+
+.chart-box { position: relative; height: 280px; }
+.chart-box.tall { height: 340px; }
+
+/* --- Jadvallar ---------------------------------------------------------- */
+.table { --bs-table-bg: transparent; margin-bottom: 0; }
+.table thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: var(--sm-muted); font-weight: 600; background: #f8fafc; white-space: nowrap; }
+.table td { vertical-align: top; }
+.table-hover tbody tr { cursor: default; }
+.row-link { cursor: pointer; }
+.cell-sm { font-size: .8rem; color: var(--sm-muted); }
+.truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.badge.text-bg-purple { background: #6f42c1 !important; color: #fff; }
+.badge-soft { background: #eef2f7; color: #334155; font-weight: 500; }
+
+/* --- Kartochka ----------------------------------------------------------- */
+.dl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .1rem 1.5rem; margin: 0; }
+.dl-grid > div { padding: .45rem 0; border-bottom: 1px dashed var(--sm-border); }
+.dl-grid dt { font-size: .74rem; color: var(--sm-muted); font-weight: 500; }
+.dl-grid dd { margin: 0; white-space: pre-line; word-break: break-word; }
+.nav-tabs .nav-link { color: #475569; }
+.nav-tabs .nav-link.active { font-weight: 600; }
+
+.timeline { list-style: none; padding: 0; margin: 0; }
+.timeline li { position: relative; padding: 0 0 .9rem 1.4rem; border-left: 2px solid var(--sm-border); margin-left: .4rem; }
+.timeline li::before { content: ""; position: absolute; left: -7px; top: .2rem; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--sm-accent); }
+.timeline .when { font-size: .75rem; color: var(--sm-muted); }
+.changes { font-size: .8rem; margin-top: .25rem; }
+.changes .old { color: #b42318; text-decoration: line-through; }
+.changes .new { color: #067647; }
+
+.filter-card .form-label { font-size: .78rem; margin-bottom: .15rem; color: #475569; }
+.filter-card .form-control, .filter-card .form-select { font-size: .85rem; }
+
+.notif-item.unread { background: #f0f7ff; }
+.login-wrap { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, var(--sm-navy) 0%, #2a5b8a 100%); }
+.login-card { width: 100%; max-width: 420px; }
+
+.helptext, .form-text { font-size: .75rem; }
+.errorlist { list-style: none; padding: 0; margin: .2rem 0 0; color: #b42318; font-size: .8rem; }
+
+@media print {
+  .sm-sidebar, .sm-topbar, .no-print, .sm-footer { display: none !important; }
+  .sm-main { margin: 0; }
+  body { background: #fff; }
+  .card { border: none; box-shadow: none; }
+}

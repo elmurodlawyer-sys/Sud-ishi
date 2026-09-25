@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Sud majlislari{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">Sud majlislari</h1><div class="small text-muted-2">{{ date_from|date:"d.m.Y" }} — {{ date_to|date:"d.m.Y" }} · {{ count }} ta majlis</div></div>
+  {% include "includes/export_buttons.html" %}</div>
+<div class="card mb-3 no-print"><div class="card-body py-2"><form class="row g-2 align-items-end" method="get">
+  <div class="col-6 col-md-3"><label class="form-label small">Dan</label><input type="date" name="from" class="form-control form-control-sm" value="{{ date_from|date:'Y-m-d' }}"></div>
+  <div class="col-6 col-md-3"><label class="form-label small">Gacha</label><input type="date" name="to" class="form-control form-control-sm" value="{{ date_to|date:'Y-m-d' }}"></div>
+  <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" name="mine" value="1" id="mine" {% if request.GET.mine %}checked{% endif %}><label class="form-check-label small" for="mine">Faqat menga biriktirilganlar</label></div></div>
+  <div class="col-6 col-md-3"><button class="btn btn-sm btn-primary w-100">Ko‘rsatish</button></div></form></div></div>
+{% for day, items in days %}
+<div class="card mb-3"><div class="card-header {% if day == today %}text-bg-warning{% endif %}">{{ day|date:"d.m.Y, l" }} {% if day == today %}— bugun{% endif %} <span class="badge text-bg-light">{{ items|length }}</span></div>
+<div class="table-responsive"><table class="table table-sm table-hover mb-0">
+  <tbody>{% for h in items %}<tr class="row-link" data-href="{% url 'cases:detail' h.case_id %}?tab=majlislar">
+    <td style="width:80px" class="fw-semibold">{{ h.scheduled_at|time:"H:i" }}</td>
+    <td><a href="{% url 'cases:detail' h.case_id %}">{{ h.case.case_number }}</a><div class="cell-sm">{{ h.case.court|default:"" }}{% if h.location %} · {{ h.location }}{% endif %}</div></td>
+    <td class="small">{{ h.case.organization }}<div><span class="badge text-bg-{{ h.case.role|role_tone }}">{{ h.case.get_role_display }}</span></div></td>
+    <td class="small">{{ h.responsible|default:h.case.responsible|default:"—" }}</td>
+    <td><span class="badge {% if h.status == 'rejalashtirilgan' %}text-bg-info{% elif h.status == 'otkazildi' %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ h.get_status_display }}</span></td></tr>
+  {% endfor %}</tbody></table></div></div>
+{% empty %}<div class="card"><div class="card-body text-center text-muted-2 py-5">Tanlangan davrda sud majlislari yo‘q</div></div>{% endfor %}
+{% endblock %}

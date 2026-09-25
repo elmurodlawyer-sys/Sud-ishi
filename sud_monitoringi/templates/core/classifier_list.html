@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Klassifikatorlar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Klassifikatorlar</h1><a class="btn btn-sm btn-primary" href="{% url 'core:classifier_create' %}?kind={{ kind }}"><i class="bi bi-plus-lg"></i> Yangi qiymat</a></div>
+<div class="row g-3"><div class="col-lg-3"><div class="list-group">{% for v, l in kinds %}<a class="list-group-item list-group-item-action {% if v == kind %}active{% endif %}" href="?kind={{ v }}">{{ l }}</a>{% endfor %}</div>
+  <p class="small text-muted-2 mt-2">Klassifikatorlar dastur kodini o‘zgartirmasdan boshqariladi. Keraksiz qiymatni o‘chirish o‘rniga “faol emas” qiling — tarixiy ma’lumotlar saqlanadi.</p></div>
+<div class="col-lg-9"><div class="card"><div class="card-header">{{ kind_label }}</div><div class="table-responsive"><table class="table table-sm table-hover align-middle">
+  <thead><tr><th>Tartib</th><th>Nomi</th><th>Kod</th><th>Belgilar</th></tr></thead>
+  <tbody>{% for i in items %}<tr class="row-link" data-href="{% url 'core:classifier_edit' i.pk %}"><td>{{ i.order }}</td><td>{{ i.name }}</td><td><code>{{ i.code }}</code></td>
+    <td>{% if not i.is_active %}<span class="badge text-bg-secondary">nofaol</span>{% endif %}{% if i.is_system %}<span class="badge badge-soft">tizim</span>{% endif %}{% if i.is_final %}<span class="badge text-bg-success">yakuniy</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted-2 py-3">Qiymatlar yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div></div>
+{% endblock %}

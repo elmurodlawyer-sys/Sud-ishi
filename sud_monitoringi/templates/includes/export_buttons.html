@@ -1,0 +1,6 @@
+{% load sm %}
+<div class="btn-group btn-group-sm no-print">
+  <a class="btn btn-outline-success" href="{% qs_replace export='xlsx' page='' %}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+  <a class="btn btn-outline-danger" href="{% qs_replace export='pdf' page='' %}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+  <a class="btn btn-outline-secondary" href="{% qs_replace export='print' page='' %}" target="_blank"><i class="bi bi-printer"></i> Chop etish</a>
+</div>

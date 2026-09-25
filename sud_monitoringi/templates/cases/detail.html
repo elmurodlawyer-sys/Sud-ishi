@@ -1,0 +1,173 @@
+{% extends "base.html" %}{% load sm %}{% block title %}{{ case.case_number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="small text-muted-2"><a href="{% url 'cases:list' %}">Sud ishlari</a> / {{ case.reg_number }}</div>
+    <h1 class="page-title">Sud ishi № {{ case.case_number }}</h1>
+    <div class="mt-1 d-flex flex-wrap gap-1">
+      {% if case.is_cancelled %}<span class="badge text-bg-dark">Bekor qilingan</span>{% endif %}
+      <span class="badge text-bg-{{ case.status|status_tone }}">{{ case.status }}</span>
+      <span class="badge text-bg-{{ case.role|role_tone }}">{{ case.get_role_display }}</span>
+      <span class="badge badge-soft">{{ case.get_review_status_display }}</span>
+      <span class="badge badge-soft">{% if case.source == 'integratsiya' %}<i class="bi bi-cloud-download"></i>{% else %}<i class="bi bi-pencil"></i>{% endif %} {{ case.get_source_display }}</span>
+    </div>
+  </div>
+  <div class="d-flex flex-wrap gap-2 no-print">
+    {% if editable %}<a class="btn btn-primary btn-sm" href="{% url 'cases:edit' case.pk %}"><i class="bi bi-pencil-square"></i> Tahrirlash</a>{% endif %}
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">Amallar</button>
+      <div class="dropdown-menu dropdown-menu-end p-3" style="width:340px">
+        <form method="post" id="action-form">{% csrf_token %}
+          <label class="form-label small">Izoh / sabab</label>
+          <textarea name="reason" class="form-control form-control-sm mb-2" rows="2"></textarea>
+          <div class="d-grid gap-1">
+          {% if editable and case.review_status != 'tasdiqlashda' and case.review_status != 'tasdiqlangan' %}
+            <button class="btn btn-sm btn-outline-primary" formaction="{% url 'cases:action' case.pk 'submit' %}"><i class="bi bi-send"></i> Yuridik bo‘lim tasdig‘iga yuborish</button>{% endif %}
+          {% if user.is_legal and not case.is_cancelled %}
+            <button class="btn btn-sm btn-outline-success" formaction="{% url 'cases:action' case.pk 'approve' %}"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
+            <button class="btn btn-sm btn-outline-warning" formaction="{% url 'cases:action' case.pk 'return' %}"><i class="bi bi-arrow-return-left"></i> Aniqlashtirish uchun qaytarish</button>
+            {% if case.status.code != 'arxivlangan' %}<button class="btn btn-sm btn-outline-dark" formaction="{% url 'cases:action' case.pk 'archive' %}"><i class="bi bi-archive"></i> Arxivga olish</button>{% endif %}
+            <button class="btn btn-sm btn-outline-danger" formaction="{% url 'cases:action' case.pk 'cancel' %}" onclick="return confirm('Kartochka bekor qilinsinmi? (noto‘g‘ri yoki takroriy yozuv)')"><i class="bi bi-x-octagon"></i> Bekor qilish</button>
+          {% endif %}
+          {% if user.is_legal and case.is_cancelled %}
+            <button class="btn btn-sm btn-outline-success" formaction="{% url 'cases:action' case.pk 'restore' %}"><i class="bi bi-arrow-counterclockwise"></i> Qayta tiklash</button>{% endif %}
+          </div>
+          <div class="form-text">Qaytarish, arxivga olish va bekor qilishda sabab majburiy.</div>
+        </form>
+      </div>
+    </div>
+    <button class="btn btn-light btn-sm" onclick="window.print()"><i class="bi bi-printer"></i></button>
+  </div>
+</div>
+
+{% if case.is_cancelled %}<div class="alert alert-dark py-2"><b>Bekor qilingan:</b> {{ case.cancelled_at|date:"d.m.Y H:i" }}, {{ case.cancelled_by|default:"" }}. Sabab: {{ case.cancel_reason }}</div>{% endif %}
+{% if case.review_status == 'qaytarilgan' and case.review_comment %}<div class="alert alert-warning py-2"><b>Yuridik bo‘lim izohi:</b> {{ case.review_comment }}</div>{% endif %}
+{% if warnings %}<div class="alert alert-danger py-2"><b><i class="bi bi-exclamation-triangle"></i> Nazorat:</b><ul class="mb-0">{% for w in warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
+
+<ul class="nav nav-tabs mb-3 no-print">
+  <li class="nav-item"><a class="nav-link {% if tab == 'umumiy' %}active{% endif %}" href="?tab=umumiy">Kartochka</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'bosqichlar' %}active{% endif %}" href="?tab=bosqichlar">Bosqichlar <span class="badge text-bg-light">{{ stages|length }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'majlislar' %}active{% endif %}" href="?tab=majlislar">Sud majlislari <span class="badge text-bg-light">{{ hearings|length }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'muddatlar' %}active{% endif %}" href="?tab=muddatlar">Muddatlar <span class="badge text-bg-light">{{ deadlines|length }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'hujjatlar' %}active{% endif %}" href="?tab=hujjatlar">Hujjatlar <span class="badge text-bg-light">{{ documents|length }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if tab == 'tarix' %}active{% endif %}" href="?tab=tarix">O‘zgarishlar tarixi</a></li>
+</ul>
+
+{% if tab == 'umumiy' %}
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card mb-3"><div class="card-header">Asosiy ma’lumotlar</div><div class="card-body"><dl class="dl-grid">
+      <div><dt>Tizimdagi yagona raqam</dt><dd>{{ case.reg_number }}</dd></div>
+      <div><dt>Sud ishi raqami</dt><dd>{{ case.case_number }}</dd></div>
+      <div><dt>Agentlik tizimidagi tashkilot</dt><dd><a href="{% url 'core:organization_detail' case.organization_id %}">{{ case.organization.full_name }}</a></dd></div>
+      <div><dt>Tashkilot turi va hududi</dt><dd>{{ case.organization.org_type }} · {{ case.organization.region|default:"—" }}</dd></div>
+      <div><dt>Protsessual maqomi</dt><dd>{{ case.get_role_display }}</dd></div>
+      <div><dt>Tashkilotdagi mas’ul xodim</dt><dd>{{ case.responsible|default:"—" }}</dd></div>
+      <div><dt>Da’vogar</dt><dd>{{ case.plaintiffs|default:"—" }}</dd></div>
+      <div><dt>Javobgar</dt><dd>{{ case.defendants|default:"—" }}</dd></div>
+      <div><dt>Uchinchi shaxslar</dt><dd>{{ case.third_parties|default:"—" }}</dd></div>
+      {% if case.other_system_orgs %}<div><dt>Tizimdagi boshqa ishtirokchi tashkilotlar</dt><dd>{{ case.other_system_orgs }}</dd></div>{% endif %}
+      <div><dt>Sud turi</dt><dd>{{ case.court.court_type|default:"—" }}</dd></div>
+      <div><dt>Sud nomi</dt><dd>{{ case.court|default:"—" }}</dd></div>
+      <div><dt>Sud instansiyasi</dt><dd>{{ case.instance|default:"—" }}</dd></div>
+      <div><dt>Ish turkumi (turi)</dt><dd>{{ case.category|default:"—" }}</dd></div>
+      <div><dt>Mas’ul sudya</dt><dd>{{ case.judge|default:"—" }}</dd></div>
+      <div><dt>Da’vo summasi</dt><dd>{{ case.claim_amount|som }}{% if case.claim_amount %} so‘m{% endif %}</dd></div>
+      <div><dt>Da’vo berilgan sana</dt><dd>{{ case.filed_date|date:"d.m.Y"|default:"—" }}</dd></div>
+      <div><dt>Navbatdagi sud majlisi</dt><dd>{% if case.next_hearing_at %}{{ case.next_hearing_at|date:"d.m.Y H:i" }} ({{ case.next_hearing_at|days_until }}){% else %}—{% endif %}</dd></div>
+    </dl>
+    <div class="mt-3"><div class="small text-muted-2">Ish predmeti</div><div style="white-space:pre-line">{{ case.subject|default:"—" }}</div></div>
+    </div></div>
+    <div class="card"><div class="card-header">Ishning yakuniy natijasi</div><div class="card-body"><dl class="dl-grid">
+      <div><dt>Joriy holati</dt><dd>{{ case.status }}</dd></div>
+      <div><dt>Yakuniy natija</dt><dd>{{ case.outcome|default:"—" }}</dd></div>
+      <div><dt>Yakuniy sud hujjati sanasi</dt><dd>{{ case.outcome_date|date:"d.m.Y"|default:"—" }}</dd></div>
+      <div><dt>Agentlik tizimi uchun natija</dt><dd>{{ case.get_agency_result_display|default:"—" }}</dd></div>
+      <div><dt>Sud qarori bo‘yicha summa</dt><dd>{{ case.awarded_amount|som }}{% if case.awarded_amount %} so‘m{% endif %}</dd></div>
+      <div><dt>Izoh</dt><dd>{{ case.outcome_note|default:"—" }}</dd></div>
+      {% if case.archive_reason %}<div><dt>Arxivga olish sababi</dt><dd>{{ case.archive_reason }}</dd></div>{% endif %}
+    </dl></div></div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card mb-3"><div class="card-header">Ma’lumot manbasi</div><div class="card-body small"><dl class="mb-0">
+      <dt>Manba</dt><dd>{{ case.get_source_display }}{% if case.source_name %} — {{ case.source_name }}{% endif %}</dd>
+      {% if case.source_url %}<dt>Manbadagi havola</dt><dd><a href="{{ case.source_url }}" target="_blank" rel="noopener noreferrer">{{ case.source_url|truncatechars:60 }}</a></dd>{% endif %}
+      {% if case.source_fetched_at %}<dt>Manbadan olingan</dt><dd>{{ case.source_fetched_at|date:"d.m.Y H:i" }}</dd>{% endif %}
+      {% if case.source_updated_at %}<dt>Manbadan oxirgi yangilangan</dt><dd>{{ case.source_updated_at|date:"d.m.Y H:i" }}</dd>{% endif %}
+      <dt>Ro‘yxatga olingan</dt><dd>{{ case.created_at|date:"d.m.Y H:i" }}{% if case.created_by %}, {{ case.created_by }}{% endif %}</dd>
+      <dt>Oxirgi yangilangan</dt><dd>{{ case.last_activity_at|date:"d.m.Y H:i" }}</dd>
+    </dl>
+    {% for r in external_records %}<div class="mt-2 p-2 bg-light rounded">{{ r.source }} · birinchi: {{ r.first_seen_at|date:"d.m.Y" }} · oxirgi: {{ r.last_seen_at|date:"d.m.Y H:i" }}</div>{% endfor %}
+    </div></div>
+    <div class="card mb-3"><div class="card-header d-flex justify-content-between"><span>Yaqin majlislar</span>{% if editable %}<a class="small" href="{% url 'cases:hearing_add' case.pk %}">+ qo‘shish</a>{% endif %}</div>
+      <ul class="list-group list-group-flush small">{% for h in hearings %}{% if h.status == 'rejalashtirilgan' %}
+        <li class="list-group-item">{{ h.scheduled_at|date:"d.m.Y H:i" }} <span class="text-muted-2">({{ h.scheduled_at|days_until }})</span>{% if h.location %} · {{ h.location }}{% endif %}</li>{% endif %}
+      {% empty %}<li class="list-group-item text-muted-2">Belgilanmagan</li>{% endfor %}</ul></div>
+    <div class="card"><div class="card-header d-flex justify-content-between"><span>Ochiq muddatlar</span>{% if editable %}<a class="small" href="{% url 'cases:deadline_add' case.pk %}">+ qo‘shish</a>{% endif %}</div>
+      <ul class="list-group list-group-flush small">{% for d in deadlines %}{% if not d.is_done %}
+        <li class="list-group-item {% if d.is_overdue %}text-danger{% endif %}">{{ d.due_date|date:"d.m.Y" }} — {{ d.title }} <span class="text-muted-2">({{ d.due_date|days_until }})</span></li>{% endif %}
+      {% empty %}<li class="list-group-item text-muted-2">Yo‘q</li>{% endfor %}</ul></div>
+  </div>
+</div>
+
+{% elif tab == 'bosqichlar' %}
+<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Sud bosqichlari (instansiyalar)</span>
+  {% if editable %}<a class="btn btn-sm btn-primary" href="{% url 'cases:stage_add' case.pk %}"><i class="bi bi-plus-lg"></i> Yangi bosqich</a>{% endif %}</div>
+  <div class="table-responsive"><table class="table table-sm">
+    <thead><tr><th>#</th><th>Instansiya</th><th>Sud</th><th>Ish raqami</th><th>Sudya</th><th>Boshlangan</th><th>Tugagan</th><th>Natija</th><th>Izoh</th><th></th></tr></thead>
+    <tbody>{% for s in stages %}<tr><td>{{ forloop.counter }}</td><td>{{ s.instance }}</td><td class="small">{{ s.court|default:"—" }}</td><td>{{ s.case_number|default:"—" }}</td>
+      <td class="small">{{ s.judge|default:"—" }}</td><td>{{ s.started_on|date:"d.m.Y" }}</td><td>{{ s.ended_on|date:"d.m.Y"|default:"jarayonda" }}</td>
+      <td class="small">{{ s.result|default:"—" }}</td><td class="small">{{ s.note }}</td>
+      <td>{% if editable and not s.ended_on %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'cases:stage_close' case.pk s.pk %}">Yakunlash</a>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="10" class="text-center text-muted-2 py-3">Bosqichlar kiritilmagan</td></tr>{% endfor %}</tbody></table></div></div>
+
+{% elif tab == 'majlislar' %}
+<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Sud majlislari tarixi</span>
+  {% if editable %}<a class="btn btn-sm btn-primary" href="{% url 'cases:hearing_add' case.pk %}"><i class="bi bi-plus-lg"></i> Sud majlisini belgilash</a>{% endif %}</div>
+  <div class="table-responsive"><table class="table table-sm">
+    <thead><tr><th>Sana, vaqt</th><th>Joyi</th><th>Holati</th><th>Natija</th><th>Mas’ul xodim</th><th>Manba</th><th></th></tr></thead>
+    <tbody>{% for h in hearings %}<tr><td class="text-nowrap">{{ h.scheduled_at|date:"d.m.Y H:i" }}</td><td>{{ h.location|default:"—" }}</td>
+      <td><span class="badge {% if h.status == 'rejalashtirilgan' %}text-bg-info{% elif h.status == 'otkazildi' %}text-bg-success{% elif h.status == 'qoldirildi' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">{{ h.get_status_display }}</span></td>
+      <td class="small">{{ h.result|default:"" }}{% if h.result_note %}<div class="cell-sm">{{ h.result_note }}</div>{% endif %}</td>
+      <td class="small">{{ h.responsible|default:"—" }}</td><td class="small">{{ h.get_source_display }}</td>
+      <td>{% if editable %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'cases:hearing_edit' case.pk h.pk %}">Natija / tahrir</a>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="7" class="text-center text-muted-2 py-3">Sud majlislari yo‘q</td></tr>{% endfor %}</tbody></table></div></div>
+
+{% elif tab == 'muddatlar' %}
+<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Protsessual va ichki nazorat muddatlari</span>
+  {% if editable %}<a class="btn btn-sm btn-primary" href="{% url 'cases:deadline_add' case.pk %}"><i class="bi bi-plus-lg"></i> Muddat qo‘shish</a>{% endif %}</div>
+  <div class="table-responsive"><table class="table table-sm align-middle">
+    <thead><tr><th>Muddat</th><th>Turi</th><th>Mazmuni</th><th>Mas’ul</th><th>Holat</th><th></th></tr></thead>
+    <tbody>{% for d in deadlines %}<tr class="{% if d.is_overdue %}table-danger{% elif d.is_done %}text-muted{% endif %}">
+      <td class="text-nowrap">{{ d.due_date|date:"d.m.Y" }}<div class="cell-sm">{{ d.due_date|days_until }}</div></td>
+      <td class="small">{{ d.get_kind_display }}{% if d.deadline_type %}<div class="cell-sm">{{ d.deadline_type }}</div>{% endif %}</td>
+      <td>{{ d.title }}{% if d.note %}<div class="cell-sm">{{ d.note }}</div>{% endif %}</td><td class="small">{{ d.responsible|default:"—" }}</td>
+      <td>{% if d.is_done %}<span class="badge text-bg-success">Bajarildi {{ d.done_at|date:"d.m.Y" }}</span>{% elif d.is_overdue %}<span class="badge text-bg-danger">Muddati o‘tgan</span>{% else %}<span class="badge text-bg-warning">Kutilmoqda</span>{% endif %}</td>
+      <td class="text-nowrap">{% if editable %}<form method="post" action="{% url 'cases:deadline_done' case.pk d.pk %}" class="d-inline">{% csrf_token %}
+        <button class="btn btn-sm btn-outline-success">{% if d.is_done %}Qayta ochish{% else %}Bajarildi{% endif %}</button></form>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'cases:deadline_edit' case.pk d.pk %}"><i class="bi bi-pencil"></i></a>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-muted-2 py-3">Muddatlar belgilanmagan</td></tr>{% endfor %}</tbody></table></div></div>
+
+{% elif tab == 'hujjatlar' %}
+<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Sud hujjatlari va boshqa materiallar</span>
+  {% if editable %}<a class="btn btn-sm btn-primary" href="{% url 'cases:document_upload' case.pk %}"><i class="bi bi-upload"></i> Hujjat biriktirish</a>{% endif %}</div>
+  <div class="table-responsive"><table class="table table-sm align-middle">
+    <thead><tr><th>Hujjat turi</th><th>Nomi</th><th>Raqami</th><th>Sanasi</th><th>Yuklagan</th><th>Yuklangan vaqt</th><th>Hajmi</th><th></th></tr></thead>
+    <tbody>{% for d in documents %}<tr><td class="small">{{ d.doc_type }}</td><td>{{ d.title|default:d.original_name }}{% if d.note %}<div class="cell-sm">{{ d.note }}</div>{% endif %}</td>
+      <td>{{ d.number|default:"—" }}</td><td>{{ d.doc_date|date:"d.m.Y"|default:"—" }}</td><td class="small">{{ d.uploaded_by|default:"—" }}</td>
+      <td class="small">{{ d.uploaded_at|date:"d.m.Y H:i" }}</td><td class="small">{{ d.size|filesize }}</td>
+      <td class="text-nowrap"><a class="btn btn-sm btn-outline-secondary" href="{% url 'cases:document_download' case.pk d.pk %}?inline=1" target="_blank" title="Ko‘rish"><i class="bi bi-eye"></i></a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'cases:document_download' case.pk d.pk %}" title="Yuklab olish"><i class="bi bi-download"></i></a></td></tr>
+    {% empty %}<tr><td colspan="8" class="text-center text-muted-2 py-3">Hujjatlar biriktirilmagan</td></tr>{% endfor %}</tbody></table></div></div>
+
+{% elif tab == 'tarix' %}
+<div class="card"><div class="card-header">O‘zgarishlar tarixi</div><div class="card-body">
+  <ul class="timeline">{% for e in events %}
+    <li><div class="when">{{ e.created_at|date:"d.m.Y H:i:s" }} · {{ e.user|default:"Tizim (integratsiya)" }} · {{ e.get_event_type_display }}</div>
+      <div>{{ e.description }}</div>
+      {% if e.comment %}<div class="small fst-italic">Izoh: {{ e.comment }}</div>{% endif %}
+      {% if e.changes %}<div class="changes">{% for c in e.changes %}<div><b>{{ c.label }}:</b> <span class="old">{{ c.old|default:"—"|truncatechars:120 }}</span> → <span class="new">{{ c.new|default:"—"|truncatechars:120 }}</span></div>{% endfor %}</div>{% endif %}
+    </li>{% empty %}<li>Tarix bo‘sh</li>{% endfor %}</ul>
+</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Hisobotlar{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">Avtomatik hisobotlar</h1><div class="small text-muted-2">Bazadagi aktual ma’lumotlar asosida · qatorni bosing — tarkibidagi ishlar ochiladi</div></div>
+  {% include "includes/export_buttons.html" %}</div>
+<div class="mb-3 d-flex flex-wrap gap-1 no-print">{% for p in presets %}<a class="btn btn-sm {% if p.active %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="{{ p.url }}">{{ p.label }}</a>{% endfor %}</div>
+<div class="row g-3">
+  <div class="col-xl-3 no-print">
+    <form method="get" class="card filter-card" id="report-form"><div class="card-body">
+      <div class="mb-2"><label class="form-label">{{ options.dims.label }}</label>{{ options.dims }}
+        <div class="form-text">Ctrl (Cmd) tugmasi bilan bir nechtasini tanlang — kombinatsiyalangan hisobot.</div></div>
+      <div class="row g-2 mb-2"><div class="col-6"><label class="form-label">{{ options.granularity.label }}</label>{{ options.granularity }}</div>
+        <div class="col-6"><label class="form-label">{{ options.period_field.label }}</label>{{ options.period_field }}</div></div>
+      <div class="mb-2"><label class="form-label">{{ options.metrics.label }}</label>
+        <div class="small">{% for cb in options.metrics %}<div class="form-check"><input class="form-check-input" type="checkbox" name="metrics" value="{{ cb.data.value }}" id="{{ cb.id_for_label }}" {% if cb.data.selected %}checked{% endif %}><label class="form-check-label" for="{{ cb.id_for_label }}">{{ cb.choice_label }}</label></div>{% endfor %}</div></div>
+      <hr><div class="fw-semibold small mb-1">Filtrlar</div>
+      {% for field in filter_form %}{% if field.name != 'sort' and field.name != 'include_children' and field.name != 'cancelled' %}
+        <div class="mb-2"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endif %}{% endfor %}
+      <div class="form-check mb-2">{{ filter_form.include_children }} <label class="form-check-label small">{{ filter_form.include_children.label }}</label></div>
+      <button class="btn btn-primary w-100"><i class="bi bi-bar-chart"></i> Shakllantirish</button>
+      <a class="btn btn-link w-100 btn-sm" href="{% url 'reports:builder' %}">Tozalash</a>
+    </div></form>
+  </div>
+  <div class="col-xl-9">
+    <div class="card mb-3"><div class="card-header">{{ title }}</div>
+      {% if filters %}<div class="px-3 pt-2 small">{% for l, v in filters %}<span class="badge badge-soft me-1">{{ l }}: {{ v }}</span>{% endfor %}</div>{% endif %}
+      <div class="table-responsive"><table class="table table-sm table-hover align-middle">
+        <thead><tr>{% for h in headers %}<th class="{% if forloop.counter > dim_count %}text-end{% endif %}">{{ h }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for r in table %}<tr class="row-link" data-href="{{ r.url }}">{% for c in r.dims %}<td>{{ c }}</td>{% endfor %}{% for v in r.values %}<td class="text-end">{{ v|num }}</td>{% endfor %}</tr>
+        {% empty %}<tr><td colspan="{{ headers|length }}" class="text-center text-muted-2 py-4">Ma’lumot yo‘q</td></tr>{% endfor %}</tbody>
+        {% if table %}<tfoot><tr class="table-light fw-semibold">{% for v in totals %}<td class="{% if forloop.counter > dim_count %}text-end{% endif %}">{{ v|num }}</td>{% endfor %}</tr></tfoot>{% endif %}
+      </table></div></div>
+    <div class="card no-print"><div class="card-header">Saqlash</div><div class="card-body">
+      <form method="post" action="{% url 'reports:save' %}" class="row g-2 align-items-end">{% csrf_token %}
+        {% for k, v in request.GET.lists %}{% if k != 'export' and k != 'page' %}{% for item in v %}<input type="hidden" name="{{ k }}" value="{{ item }}">{% endfor %}{% endif %}{% endfor %}
+        {% if not request.GET.dims %}<input type="hidden" name="dims" value="organization">{% endif %}
+        <div class="col-md-5"><label class="form-label small">Hisobot nomi</label><input class="form-control form-control-sm" name="name" value="{{ title }}"></div>
+        <div class="col-md-3"><label class="form-label small">Avtomatik shakllantirish</label><select class="form-select form-select-sm" name="periodicity"><option value="">— yo‘q —</option>
+          {% for v, l in periodicity_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+        <div class="col-md-4 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" name="action" value="generate"><i class="bi bi-save"></i> Fayl sifatida saqlash</button>
+          <button class="btn btn-sm btn-outline-secondary" name="action" value="template"><i class="bi bi-bookmark"></i> Shablon</button></div>
+      </form>
+      <div class="form-text">“Fayl sifatida saqlash” — joriy natija Excel va PDF ko‘rinishida arxivlanadi. “Shablon” — parametrlar saqlanadi va tanlangan davriylikda avtomatik shakllantiriladi.</div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll("#report-form input:not([type=checkbox]), #report-form select").forEach(function (el) {
+  el.classList.add(el.tagName === "SELECT" ? "form-select" : "form-control", el.tagName === "SELECT" ? "form-select-sm" : "form-control-sm");
+});
+document.querySelectorAll("#report-form input[type=checkbox]").forEach(function (el) { el.classList.add("form-check-input"); });
+</script>{% endblock %}

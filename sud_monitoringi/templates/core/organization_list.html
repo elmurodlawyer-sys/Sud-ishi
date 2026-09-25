@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Tashkilotlar{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">Tashkilotlar ma’lumotnomasi</h1><div class="small text-muted-2">Jami: {{ page.paginator.count }}</div></div>
+  <div class="d-flex gap-2 flex-wrap">{% include "includes/export_buttons.html" %}
+  {% if user.can_manage_directory %}<a class="btn btn-sm btn-outline-primary" href="{% url 'core:organization_import' %}"><i class="bi bi-upload"></i> Excel’dan import</a>
+  <a class="btn btn-sm btn-primary" href="{% url 'core:organization_create' %}"><i class="bi bi-plus-lg"></i> Yangi tashkilot</a>{% endif %}</div></div>
+<div class="card mb-3 no-print"><div class="card-body py-2"><form class="row g-2" method="get">
+  <div class="col-md-4"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Nom (to‘liq, qisqa, oldingi, muqobil) yoki STIR"></div>
+  <div class="col-md-3"><select name="org_type" class="form-select form-select-sm"><option value="">— barcha turlar —</option>{% for t in org_types %}<option value="{{ t.pk }}" {% if request.GET.org_type == t.pk|stringformat:'s' %}selected{% endif %}>{{ t }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><select name="region" class="form-select form-select-sm"><option value="">— barcha hududlar —</option>{% for r in regions %}<option value="{{ r.pk }}" {% if request.GET.region == r.pk|stringformat:'s' %}selected{% endif %}>{{ r }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Qidirish</button></div></form></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover align-middle">
+  <thead><tr><th>Tashkilot</th><th>STIR</th><th>Turi</th><th>Hudud</th><th>Yuqori tashkilot</th><th class="text-end">Sud ishlari</th><th></th></tr></thead>
+  <tbody>{% for o in page %}<tr class="row-link" data-href="{% url 'core:organization_detail' o.pk %}">
+    <td>{{ o.full_name }}{% if o.short_name %}<div class="cell-sm">{{ o.short_name }}</div>{% endif %}</td><td>{{ o.stir|default:"—" }}</td>
+    <td class="small">{{ o.org_type }}</td><td class="small">{{ o.region|default:"—" }}{% if o.district %}<div class="cell-sm">{{ o.district }}</div>{% endif %}</td>
+    <td class="small">{{ o.parent|default:"—" }}</td><td class="text-end">{{ o.case_count }}</td>
+    <td>{% if not o.is_active %}<span class="badge text-bg-secondary">nofaol</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="7" class="text-center text-muted-2 py-4">Tashkilot topilmadi</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "includes/pagination.html" %}
+{% endblock %}

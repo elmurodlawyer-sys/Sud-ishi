@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Integratsiya{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">Integratsiya (jadval2.sud.uz va boshqa manbalar)</h1>
+  <div class="small text-muted-2">Manbalar belgilangan davriylikda avtomatik tekshiriladi (<code>run_scheduler</code> yoki <code>run_integration</code>).</div></div>
+  <div class="d-flex gap-2"><a class="btn btn-sm btn-outline-primary" href="{% url 'integration:file_import' %}"><i class="bi bi-file-earmark-arrow-up"></i> Fayldan import</a>
+  <a class="btn btn-sm btn-primary" href="{% url 'integration:source_create' %}"><i class="bi bi-plus-lg"></i> Yangi manba</a></div></div>
+<div class="card mb-3"><div class="table-responsive"><table class="table table-sm align-middle">
+  <thead><tr><th>Manba</th><th>Usul</th><th>Davriylik</th><th>Oxirgi tekshiruv</th><th>Natija</th><th class="text-end">Amallar</th></tr></thead>
+  <tbody>{% for s in sources %}<tr><td>{{ s.name }}{% if not s.is_active %} <span class="badge text-bg-secondary">nofaol</span>{% endif %}<div class="cell-sm">{{ s.base_url|truncatechars:60 }}</div></td>
+    <td class="small">{{ s.get_adapter_display }}</td><td class="small">{% if s.adapter == 'file' %}—{% else %}{{ s.interval_minutes }} daq.{% endif %}</td>
+    <td class="small">{{ s.last_run_at|date:"d.m.Y H:i"|default:"—" }}{% if s.last_success_at %}<div class="cell-sm">muvaffaqiyatli: {{ s.last_success_at|date:"d.m.Y H:i" }}</div>{% endif %}</td>
+    <td class="small">{{ s.last_status|default:"—" }}</td>
+    <td class="text-end text-nowrap">{% if s.adapter != 'file' %}<form method="post" action="{% url 'integration:source_run' s.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-success"><i class="bi bi-play-fill"></i> Hozir tekshirish</button></form>{% endif %}
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'integration:source_edit' s.pk %}"><i class="bi bi-gear"></i></a></td></tr>
+  {% empty %}<tr><td colspan="6" class="text-center text-muted-2 py-4">Manbalar sozlanmagan</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="card"><div class="card-header">Oxirgi tekshiruv seanslari</div><div class="table-responsive"><table class="table table-sm table-hover">
+  <thead><tr><th>Boshlangan</th><th>Manba</th><th>Holat</th><th class="text-end">Olingan</th><th class="text-end">Mos</th><th class="text-end">Yangi</th><th class="text-end">Yangilangan</th><th class="text-end">O‘zgarmagan</th><th>Kim</th></tr></thead>
+  <tbody>{% for r in runs %}<tr class="row-link" data-href="{% url 'integration:run_detail' r.pk %}"><td class="small">{{ r.started_at|date:"d.m.Y H:i" }}</td><td class="small">{{ r.source }}</td>
+    <td><span class="badge {% if r.status == 'muvaffaqiyatli' %}text-bg-success{% elif r.status == 'xato' %}text-bg-danger{% else %}text-bg-warning{% endif %}">{{ r.get_status_display }}</span></td>
+    <td class="text-end">{{ r.fetched }}</td><td class="text-end">{{ r.matched }}</td><td class="text-end">{{ r.created }}</td><td class="text-end">{{ r.updated }}</td><td class="text-end">{{ r.unchanged }}</td>
+    <td class="small">{{ r.triggered_by|default:"avtomatik" }}</td></tr>
+  {% empty %}<tr><td colspan="9" class="text-center text-muted-2 py-3">Seanslar yo‘q</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

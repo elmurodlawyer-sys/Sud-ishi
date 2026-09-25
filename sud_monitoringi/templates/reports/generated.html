@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Saqlangan hisobotlar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Saqlangan hisobotlar</h1><a class="btn btn-sm btn-primary" href="{% url 'reports:builder' %}"><i class="bi bi-bar-chart"></i> Yangi hisobot</a></div>
+<div class="card mb-3"><div class="card-header">Hisobot shablonlari (davriy avtomatik shakllantirish)</div>
+  <div class="table-responsive"><table class="table table-sm align-middle">
+    <thead><tr><th>Nomi</th><th>Davriylik</th><th>Muallif</th><th>Oxirgi shakllantirilgan</th><th class="text-end">Amallar</th></tr></thead>
+    <tbody>{% for t in templates %}<tr><td>{{ t.name }}</td><td>{{ t.get_periodicity_display|default:"qo‘lda" }}</td><td class="small">{{ t.created_by|default:"—" }}</td>
+      <td class="small">{{ t.last_generated_at|date:"d.m.Y H:i"|default:"—" }}</td>
+      <td class="text-end text-nowrap">
+        <form method="post" action="{% url 'reports:template_action' t.pk 'open' %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">Ochish</button></form>
+        <form method="post" action="{% url 'reports:template_action' t.pk 'run' %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-primary">Hozir shakllantirish</button></form>
+        <form method="post" action="{% url 'reports:template_action' t.pk 'delete' %}" class="d-inline" data-confirm="Shablon o‘chirilsinmi?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+      </td></tr>
+    {% empty %}<tr><td colspan="5" class="text-center text-muted-2 py-3">Shablonlar yo‘q</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="card"><div class="card-header">Shakllantirilgan hisobotlar arxivi</div>
+  <div class="table-responsive"><table class="table table-sm align-middle">
+    <thead><tr><th>Nomi</th><th>Shakllantirilgan</th><th>Turi</th><th>Kim tomonidan</th><th class="text-end">Fayllar</th></tr></thead>
+    <tbody>{% for r in reports %}<tr><td>{{ r.title }}</td><td class="small">{{ r.created_at|date:"d.m.Y H:i" }}</td>
+      <td>{% if r.is_automatic %}<span class="badge text-bg-info">avtomatik</span>{% else %}<span class="badge badge-soft">qo‘lda</span>{% endif %}</td><td class="small">{{ r.created_by|default:"tizim" }}</td>
+      <td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-success" href="{% url 'reports:generated_download' r.pk 'xlsx' %}"><i class="bi bi-file-earmark-excel"></i></a>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'reports:generated_download' r.pk 'pdf' %}"><i class="bi bi-file-earmark-pdf"></i></a></td></tr>
+    {% empty %}<tr><td colspan="5" class="text-center text-muted-2 py-3">Hali hisobot saqlanmagan</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

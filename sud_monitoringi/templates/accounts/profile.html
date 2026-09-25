@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}Profil{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Profil</h1></div>
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card"><div class="card-header">Shaxsiy ma’lumotlar</div><div class="card-body">
+    <p class="small text-muted-2 mb-3">Login: <b>{{ user.username }}</b> · Rol: <b>{{ user.get_role_display }}</b>{% if user.organization %} · Tashkilot: <b>{{ user.organization }}</b>{% endif %}</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="form" value="profile">
+      <div class="row">{% for field in profile_form %}{% include "includes/field.html" with col="col-md-6" %}{% endfor %}</div>
+      <button class="btn btn-primary">Saqlash</button>
+    </form></div></div></div>
+  <div class="col-lg-5"><div class="card"><div class="card-header">Parolni o‘zgartirish</div><div class="card-body">
+    <form method="post">{% csrf_token %}<input type="hidden" name="form" value="password">
+      {% include "includes/form_errors.html" with form=password_form %}
+      <div class="row">{% for field in password_form %}{% include "includes/field.html" %}{% endfor %}</div>
+      <button class="btn btn-outline-primary">Parolni o‘zgartirish</button>
+    </form></div></div></div>
+</div>
+{% endblock %}

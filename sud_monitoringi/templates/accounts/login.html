@@ -1,0 +1,25 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kirish — Sud monitoringi</title>
+<link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
+<body>
+<div class="login-wrap p-3">
+  <div class="card login-card shadow">
+    <div class="card-body p-4">
+      <div class="text-center mb-4">
+        <i class="bi bi-bank2 display-5" style="color:var(--sm-navy)"></i>
+        <h1 class="h4 mt-2 mb-1">“Sud monitoringi” axborot tizimi</h1>
+        <div class="small text-muted-2">O‘zbekiston Respublikasi Prezidenti huzuridagi Ijtimoiy himoya milliy agentligi</div>
+      </div>
+      {% include "includes/form_errors.html" %}
+      <form method="post">{% csrf_token %}
+        <div class="row">{% for field in form %}{% include "includes/field.html" %}{% endfor %}</div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="btn btn-primary w-100 mt-2" type="submit"><i class="bi bi-box-arrow-in-right"></i> Kirish</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body></html>

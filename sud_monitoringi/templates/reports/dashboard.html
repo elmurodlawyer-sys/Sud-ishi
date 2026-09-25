@@ -1,0 +1,70 @@
+{% extends "base.html" %}{% load static sm %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Monitoring paneli</h1>
+    <div class="small text-muted-2">{% if user.is_central %}Agentlik tizimidagi barcha tashkilotlar{% else %}{{ user.organization }} va quyi tashkilotlar{% endif %} · {{ today|date:"d.m.Y" }}</div></div>
+  <div class="small text-muted-2 no-print"><i class="bi bi-hand-index"></i> Ko‘rsatkich yoki diagramma ustiga bosing — tegishli sud ishlari ro‘yxati ochiladi</div>
+</div>
+<div class="row g-3 mb-3">
+  {% for k in kpis %}
+  <div class="col-6 col-md-4 col-xl-3">
+    <a class="card kpi tone-{{ k.tone }}" href="{{ k.url }}"><div class="card-body">
+      <div class="icon"><i class="bi bi-{{ k.icon }}"></i></div>
+      <div><div class="value">{{ k.value|num }}</div><div class="label">{{ k.label }}</div></div>
+    </div></a>
+  </div>
+  {% endfor %}
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header">Yangi ro‘yxatga olingan ishlar dinamikasi (12 oy)</div>
+    <div class="card-body"><div class="chart-box"><canvas id="c-monthly"></canvas></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card h-100"><div class="card-header">Sud turlari bo‘yicha taqsimot</div>
+    <div class="card-body"><div class="chart-box"><canvas id="c-court"></canvas></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card h-100"><div class="card-header">Yakunlangan ishlar natijalari</div>
+    <div class="card-body"><div class="chart-box"><canvas id="c-result"></canvas></div></div></div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Ish turlari bo‘yicha taqsimot</div>
+    <div class="card-body"><div class="chart-box"><canvas id="c-category"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Ish holatlari</div>
+    <div class="card-body"><div class="chart-box"><canvas id="c-status"></canvas></div></div></div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Hududlar kesimida</div>
+    <div class="card-body"><div class="chart-box tall"><canvas id="c-region"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Eng ko‘p sud ishi bo‘lgan 10 ta tashkilot</div>
+    <div class="card-body"><div class="chart-box tall"><canvas id="c-org"></canvas></div></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-xl-7"><div class="card h-100"><div class="card-header d-flex justify-content-between"><span>Bugungi va kelgusi sud majlislari</span>
+    <a class="small" href="{% url 'cases:hearings' %}">Barchasi</a></div>
+    <div class="table-responsive"><table class="table table-sm table-hover">
+      <thead><tr><th>Sana, vaqt</th><th>Ish</th><th>Tashkilot</th><th>Mas’ul</th></tr></thead>
+      <tbody>{% for h in upcoming %}<tr class="row-link" data-href="{% url 'cases:detail' h.case_id %}">
+        <td class="text-nowrap">{{ h.scheduled_at|date:"d.m.Y H:i" }}<div class="cell-sm">{{ h.scheduled_at|days_until }}</div></td>
+        <td>{{ h.case.case_number }}<div class="cell-sm">{{ h.case.court|default:"" }}</div></td>
+        <td class="small">{{ h.case.organization }}</td><td class="small">{{ h.responsible|default:"—" }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="text-center text-muted-2 py-3">Rejalashtirilgan majlislar yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-5"><div class="card h-100"><div class="card-header d-flex justify-content-between"><span>Muddati o‘tib ketgan nazoratlar</span>
+    <a class="small" href="{% url 'cases:control' %}">Nazorat</a></div>
+    <div class="table-responsive"><table class="table table-sm table-hover">
+      <thead><tr><th>Muddat</th><th>Mazmuni</th><th>Ish</th></tr></thead>
+      <tbody>{% for d in overdue %}<tr class="row-link" data-href="{% url 'cases:detail' d.case_id %}?tab=muddatlar">
+        <td class="text-danger text-nowrap">{{ d.due_date|date:"d.m.Y" }}</td><td class="small">{{ d.title }}</td><td class="small">{{ d.case.case_number }}<div class="cell-sm">{{ d.case.organization }}</div></td></tr>
+      {% empty %}<tr><td colspan="3" class="text-center text-muted-2 py-3">Muddati o‘tgan nazorat yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{{ charts.monthly|json_script:"d-monthly" }}{{ charts.court_type|json_script:"d-court" }}{{ charts.category|json_script:"d-category" }}
+{{ charts.status|json_script:"d-status" }}{{ charts.result|json_script:"d-result" }}{{ charts.region|json_script:"d-region" }}{{ charts.organization|json_script:"d-org" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/chartjs/chart.umd.js' %}"></script>
+<script>
+  smChart("c-monthly", "d-monthly", "line");
+  smChart("c-court", "d-court", "doughnut", {legendBottom: true});
+  smChart("c-result", "d-result", "doughnut", {legendBottom: true});
+  smChart("c-category", "d-category", "hbar");
+  smChart("c-status", "d-status", "bar");
+  smChart("c-region", "d-region", "hbar", {single: true});
+  smChart("c-org", "d-org", "hbar", {single: true});
+</script>
+{% endblock %}

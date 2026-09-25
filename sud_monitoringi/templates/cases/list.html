@@ -1,0 +1,60 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Sud ishlari{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Sud ishlari</h1><div class="small text-muted-2">Topildi: <b>{{ total|num }}</b></div></div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% include "includes/export_buttons.html" %}
+    {% if user.can_edit_cases %}<a class="btn btn-primary btn-sm" href="{% url 'cases:create' %}"><i class="bi bi-plus-lg"></i> Yangi ish</a>{% endif %}
+  </div>
+</div>
+<div class="card mb-3 filter-card no-print"><div class="card-body pb-2">
+<form method="get" id="filters">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">{{ form.q.label_tag }}{{ form.q }}</div>
+    <div class="col-6 col-md-2">{{ form.state.label_tag }}{{ form.state }}</div>
+    <div class="col-6 col-md-2">{{ form.role.label_tag }}{{ form.role }}</div>
+    <div class="col-6 col-md-2">{{ form.status.label_tag }}{{ form.status }}</div>
+    <div class="col-6 col-md-2">{{ form.sort.label_tag }}{{ form.sort }}</div>
+  </div>
+  <div class="collapse {% if show_advanced %}show{% endif %}" id="adv">
+    <div class="row g-2 mt-1">
+      {% for field in form %}{% if field.name not in "q,state,role,status,sort,include_children,cancelled" %}
+        <div class="col-6 col-md-3 col-xl-2">{{ field.label_tag }}{{ field }}</div>
+      {% endif %}{% endfor %}
+      <div class="col-12 d-flex gap-3">
+        <div class="form-check">{{ form.include_children }} <label class="form-check-label small" for="{{ form.include_children.id_for_label }}">{{ form.include_children.label }}</label></div>
+        <div class="form-check">{{ form.cancelled }} <label class="form-check-label small" for="{{ form.cancelled.id_for_label }}">{{ form.cancelled.label }}</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex gap-2 mt-2">
+    <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtrlash</button>
+    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#adv"><i class="bi bi-sliders"></i> Kengaytirilgan filtr</button>
+    <a class="btn btn-sm btn-link" href="{% url 'cases:list' %}">Tozalash</a>
+  </div>
+</form></div></div>
+{% if active_filters %}<div class="mb-2 small">{% for l, v in active_filters %}<span class="badge badge-soft me-1">{{ l }}: {{ v }}</span>{% endfor %}</div>{% endif %}
+<div class="card"><div class="table-responsive"><table class="table table-hover table-sm align-middle">
+  <thead><tr><th>Ish</th><th>Tashkilot / maqom</th><th>Taraflar</th><th>Sud / instansiya</th><th>Holati</th><th>Navbatdagi majlis</th><th>Mas’ul</th></tr></thead>
+  <tbody>{% for c in page %}
+  <tr class="row-link {% if c.is_cancelled %}table-secondary{% endif %}" data-href="{% url 'cases:detail' c.pk %}">
+    <td class="text-nowrap"><a href="{% url 'cases:detail' c.pk %}" class="fw-semibold">{{ c.case_number }}</a><div class="cell-sm">{{ c.reg_number }}{% if c.source == 'integratsiya' %} <i class="bi bi-cloud-download" title="Integratsiya orqali"></i>{% endif %}</div></td>
+    <td><div class="small">{{ c.organization }}</div><span class="badge text-bg-{{ c.role|role_tone }}">{{ c.get_role_display }}</span></td>
+    <td class="small" style="max-width:280px"><div class="truncate-2"><b>D:</b> {{ c.plaintiffs|default:"—" }}</div><div class="truncate-2"><b>J:</b> {{ c.defendants|default:"—" }}</div></td>
+    <td class="small">{{ c.court|default:"—" }}<div class="cell-sm">{{ c.instance|default:"" }}{% if c.category %} · {{ c.category }}{% endif %}</div></td>
+    <td>{% if c.is_cancelled %}<span class="badge text-bg-dark">Bekor qilingan</span>{% else %}<span class="badge text-bg-{{ c.status|status_tone }}">{{ c.status }}</span>{% endif %}
+      {% if c.review_status == 'qaytarilgan' %}<div><span class="badge text-bg-warning mt-1">Qaytarilgan</span></div>{% elif c.review_status == 'tasdiqlashda' %}<div><span class="badge text-bg-info mt-1">Tasdiqlashda</span></div>{% endif %}</td>
+    <td class="small text-nowrap">{% if c.next_hearing_at %}{{ c.next_hearing_at|date:"d.m.Y H:i" }}<div class="cell-sm">{{ c.next_hearing_at|days_until }}</div>{% else %}—{% endif %}</td>
+    <td class="small">{{ c.responsible|default:"—" }}</td>
+  </tr>
+  {% empty %}<tr><td colspan="7" class="text-center text-muted-2 py-5">Mezonlarga mos sud ishi topilmadi</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "includes/pagination.html" %}
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll("#filters input:not([type=checkbox]), #filters select").forEach(function (el) {
+  if (el.type !== "checkbox") el.classList.add(el.tagName === "SELECT" ? "form-select" : "form-control", el.tagName === "SELECT" ? "form-select-sm" : "form-control-sm");
+});
+document.querySelectorAll("#filters input[type=checkbox]").forEach(function (el) { el.classList.add("form-check-input"); });
+document.querySelectorAll("#filters label:not(.form-check-label)").forEach(function (el) { el.classList.add("form-label"); });
+</script>{% endblock %}

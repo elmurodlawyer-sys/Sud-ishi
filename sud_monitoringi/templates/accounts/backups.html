@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Zaxira nusxalar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Zaxira nusxalar</h1>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="create">
+    <button class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> Hozir zaxira nusxa yaratish</button></form></div>
+<div class="alert alert-info small">Zaxira nusxaga bazadagi barcha ma’lumotlar va yuklangan hujjatlar kiradi. Avtomatik nusxa har kuni
+  <code>python manage.py backup</code> (yoki <code>run_scheduler</code>) orqali yaratiladi. Tiklashdan oldin joriy holatning nusxasi avtomatik saqlanadi.</div>
+<div class="card"><div class="table-responsive"><table class="table table-sm align-middle">
+  <thead><tr><th>Fayl</th><th>Yaratilgan</th><th>Hajmi</th><th class="text-end">Amallar</th></tr></thead>
+  <tbody>{% for b in backups %}<tr><td>{{ b.name }}</td><td>{{ b.created|date:"d.m.Y H:i" }}</td><td>{{ b.size|filesize }}</td>
+    <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backup_download' b.name %}"><i class="bi bi-download"></i></a>
+      <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#r{{ forloop.counter }}">Tiklash</button>
+      <div class="collapse mt-2" id="r{{ forloop.counter }}"><form method="post" class="d-flex gap-2 justify-content-end" data-confirm="Barcha joriy ma’lumotlar ushbu nusxadagi holatga qaytariladi. Davom etasizmi?">{% csrf_token %}
+        <input type="hidden" name="action" value="restore"><input type="hidden" name="name" value="{{ b.name }}">
+        <input class="form-control form-control-sm" style="max-width:180px" name="confirm" placeholder="TIKLASH deb yozing">
+        <button class="btn btn-sm btn-danger">Tasdiqlash</button></form></div></td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted-2 py-4">Hali zaxira nusxa yaratilmagan</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

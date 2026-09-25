@@ -1,0 +1,104 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sud monitoringi{% endblock %} — Sud monitoringi</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% with url=request.resolver_match.namespace|add:":"|add:request.resolver_match.url_name %}
+<aside class="sm-sidebar">
+  <div class="sm-brand">
+    <div class="title"><i class="bi bi-bank2 me-1"></i> Sud monitoringi</div>
+    <div class="sub">Ijtimoiy himoya milliy agentligi va tizimidagi tashkilotlar sud ishlari</div>
+  </div>
+  <nav class="sm-nav">
+    <div class="section">Monitoring</div>
+    <a href="{% url 'reports:dashboard' %}" class="{% if url == 'reports:dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{% url 'cases:list' %}" class="{% if url == 'cases:list' or url == 'cases:detail' or url == 'cases:edit' %}active{% endif %}"><i class="bi bi-folder2-open"></i> Sud ishlari</a>
+    {% if user.can_edit_cases %}<a href="{% url 'cases:create' %}" class="{% if url == 'cases:create' %}active{% endif %}"><i class="bi bi-plus-square"></i> Yangi ish</a>{% endif %}
+    <a href="{% url 'cases:hearings' %}" class="{% if url == 'cases:hearings' %}active{% endif %}"><i class="bi bi-calendar-week"></i> Sud majlislari</a>
+    <a href="{% url 'cases:control' %}" class="{% if url == 'cases:control' %}active{% endif %}"><i class="bi bi-alarm"></i> Nazorat</a>
+    <a href="{% url 'notifications:list' %}" class="{% if request.resolver_match.namespace == 'notifications' %}active{% endif %}"><i class="bi bi-bell"></i> Xabarnomalar {% if unread_notifications_count %}<span class="badge rounded-pill text-bg-danger">{{ unread_notifications_count }}</span>{% endif %}</a>
+    <div class="section">Tahlil</div>
+    <a href="{% url 'reports:builder' %}" class="{% if url == 'reports:builder' %}active{% endif %}"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
+    <a href="{% url 'reports:generated' %}" class="{% if url == 'reports:generated' %}active{% endif %}"><i class="bi bi-archive"></i> Saqlangan hisobotlar</a>
+    <div class="section">Ma’lumotnomalar</div>
+    <a href="{% url 'core:organization_list' %}" class="{% if url|slice:':17' == 'core:organization' %}active{% endif %}"><i class="bi bi-diagram-3"></i> Tashkilotlar</a>
+    <a href="{% url 'core:court_list' %}" class="{% if url|slice:':10' == 'core:court' %}active{% endif %}"><i class="bi bi-building"></i> Sudlar</a>
+    {% if user.can_manage_directory %}<a href="{% url 'core:classifier_list' %}" class="{% if url|slice:':15' == 'core:classifier' %}active{% endif %}"><i class="bi bi-list-ul"></i> Klassifikatorlar</a>{% endif %}
+    {% if user.can_manage_integration or user.is_system_admin %}
+    <div class="section">Boshqaruv</div>
+    {% if user.can_manage_integration %}<a href="{% url 'integration:source_list' %}" class="{% if request.resolver_match.namespace == 'integration' %}active{% endif %}"><i class="bi bi-arrow-repeat"></i> Integratsiya</a>{% endif %}
+    {% if user.is_system_admin %}
+    <a href="{% url 'accounts:user_list' %}" class="{% if url|slice:':18' == 'accounts:user_list' or url == 'accounts:user_edit' or url == 'accounts:user_create' %}active{% endif %}"><i class="bi bi-people"></i> Foydalanuvchilar</a>
+    <a href="{% url 'accounts:backups' %}" class="{% if url == 'accounts:backups' %}active{% endif %}"><i class="bi bi-hdd-stack"></i> Zaxira nusxalar</a>
+    {% endif %}
+    {% if user.is_system_admin or user.role == 'at_markaz' %}<a href="{% url 'accounts:audit_log' %}" class="{% if url == 'accounts:audit_log' %}active{% endif %}"><i class="bi bi-journal-text"></i> Harakatlar jurnali</a>{% endif %}
+    {% endif %}
+  </nav>
+</aside>
+{% endwith %}
+<div class="sm-main">
+  <header class="sm-topbar">
+    <button class="btn btn-sm btn-outline-secondary d-lg-none" type="button" data-sidebar-toggle aria-label="Menyu"><i class="bi bi-list"></i></button>
+    <form class="d-none d-md-flex flex-grow-1" action="{% url 'cases:list' %}" method="get" role="search" style="max-width:520px">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <input class="form-control" type="search" name="q" placeholder="Ish raqami, taraf, tashkilot bo‘yicha qidirish..." value="{{ request.GET.q|default:'' }}">
+      </div>
+    </form>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="dropdown">
+        <button class="btn btn-sm btn-light position-relative" data-bs-toggle="dropdown" aria-label="Xabarnomalar">
+          <i class="bi bi-bell"></i>
+          {% if unread_notifications_count %}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">{{ unread_notifications_count }}</span>{% endif %}
+        </button>
+        <div class="dropdown-menu dropdown-menu-end p-0" style="width:340px">
+          <div class="px-3 py-2 border-bottom fw-semibold small">Yangi xabarnomalar</div>
+          {% for n in latest_notifications %}
+            <a class="dropdown-item small py-2 border-bottom text-wrap" href="{% url 'notifications:open' n.pk %}">
+              <div class="fw-semibold">{{ n.title }}</div><div class="text-muted-2">{{ n.created_at|date:"d.m.Y H:i" }}</div>
+            </a>
+          {% empty %}
+            <div class="px-3 py-3 small text-muted-2">Yangi xabarnoma yo‘q</div>
+          {% endfor %}
+          <a class="dropdown-item small text-center py-2" href="{% url 'notifications:list' %}">Barchasi</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle"></i> <span class="d-none d-sm-inline">{{ user.get_full_name|default:user.username }}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li class="px-3 py-1 small text-muted-2">{{ user.get_role_display }}{% if user.organization %}<br>{{ user.organization }}{% endif %}</li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-gear me-1"></i> Profil va parol</a></li>
+          <li>
+            <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+              <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right me-1"></i> Chiqish</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </header>
+  <main class="sm-content">
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show py-2" role="alert">
+        {{ message }}<button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Yopish"></button>
+      </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="sm-footer">“Sud monitoringi” axborot tizimi · O‘zbekiston Respublikasi Prezidenti huzuridagi Ijtimoiy himoya milliy agentligi</footer>
+</div>
+<script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

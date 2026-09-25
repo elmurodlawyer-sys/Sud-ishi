@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Xabarnomalar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Xabarnomalar</h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm {% if unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?unread=1">O‘qilmaganlar</a>
+    <a class="btn btn-sm {% if not unread_only %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?">Barchasi</a>
+    <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}<button class="btn btn-sm btn-light"><i class="bi bi-check2-all"></i> Hammasini o‘qilgan deb belgilash</button></form>
+  </div></div>
+<div class="card"><ul class="list-group list-group-flush">
+  {% for n in page %}<li class="list-group-item notif-item {% if not n.is_read %}unread{% endif %}">
+    <a class="d-block text-reset" href="{% url 'notifications:open' n.pk %}">
+      <div class="d-flex justify-content-between gap-2"><span class="fw-semibold">{% if not n.is_read %}<i class="bi bi-circle-fill text-primary" style="font-size:.5rem"></i> {% endif %}{{ n.title }}</span>
+        <span class="small text-muted-2 text-nowrap">{{ n.created_at|date:"d.m.Y H:i" }}</span></div>
+      <div class="small text-muted-2">{{ n.get_kind_display }}{% if n.message %} · {{ n.message|truncatechars:220 }}{% endif %}</div>
+    </a></li>
+  {% empty %}<li class="list-group-item text-center text-muted-2 py-5">Xabarnomalar yo‘q</li>{% endfor %}
+</ul></div>
+{% include "includes/pagination.html" %}
+{% endblock %}

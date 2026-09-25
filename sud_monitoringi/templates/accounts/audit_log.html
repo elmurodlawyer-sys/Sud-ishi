@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Harakatlar jurnali{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Foydalanuvchilar harakatlari jurnali</h1>
+  <div class="btn-group btn-group-sm"><a class="btn btn-outline-success" href="{% qs_replace export='xlsx' page='' %}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+  <a class="btn btn-outline-danger" href="{% qs_replace export='pdf' page='' %}"><i class="bi bi-file-earmark-pdf"></i> PDF</a></div></div>
+<div class="card mb-3 filter-card"><div class="card-body py-2">
+  <form class="row g-2 align-items-end" method="get">
+    <div class="col-md-3"><label class="form-label">Qidiruv</label><input class="form-control form-control-sm" name="q" value="{{ q }}"></div>
+    <div class="col-md-3"><label class="form-label">Harakat</label><select class="form-select form-select-sm" name="action"><option value="">— barchasi —</option>
+      {% for a in actions %}<option {% if request.GET.action == a %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label">Dan</label><input type="date" class="form-control form-control-sm" name="from" value="{{ request.GET.from }}"></div>
+    <div class="col-md-2"><label class="form-label">Gacha</label><input type="date" class="form-control form-control-sm" name="to" value="{{ request.GET.to }}"></div>
+    <div class="col-md-2"><div class="form-check"><input class="form-check-input" type="checkbox" name="admin" value="1" id="adm" {% if request.GET.admin %}checked{% endif %}><label class="form-check-label small" for="adm">Faqat administrator</label></div>
+      <button class="btn btn-sm btn-outline-primary w-100 mt-1">Ko‘rsatish</button></div>
+  </form></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>Vaqt</th><th>Foydalanuvchi</th><th>Harakat</th><th>Obyekt</th><th>Tavsif</th><th>IP</th></tr></thead>
+  <tbody>{% for a in page %}<tr><td class="small text-nowrap">{{ a.created_at|date:"d.m.Y H:i:s" }}</td><td class="small">{{ a.username|default:"tizim" }}{% if a.is_admin_action %} <span class="badge text-bg-warning">admin</span>{% endif %}</td>
+    <td class="small">{{ a.action }}</td><td class="small">{{ a.object_type }} {{ a.object_id }}</td><td class="small">{{ a.description|truncatechars:160 }}</td><td class="small">{{ a.ip_address|default:"" }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="text-center text-muted-2 py-4">Yozuv yo‘q</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "includes/pagination.html" %}
+{% endblock %}

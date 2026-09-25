@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Fayldan import{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Sud ishlarini fayldan import qilish</h1><a class="btn btn-sm btn-light" href="{% url 'integration:source_list' %}"><i class="bi bi-arrow-left"></i> Orqaga</a></div>
+<div class="row g-3"><div class="col-lg-6"><div class="card"><div class="card-body">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="row">{% for field in form %}{% include "includes/field.html" %}{% endfor %}</div>
+  <button class="btn btn-primary"><i class="bi bi-upload"></i> Import qilish</button></form></div></div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header">Fayl tuzilishi</div><div class="card-body small">
+  <p>Fayl manbadan (masalan, jadval2.sud.uz dan) olingan ro‘yxat bo‘lishi mumkin. Ustunlar maydon nomlari bilan yoki odatiy sarlavhalar bilan (Ish raqami, Da’vogar, Javobgar, Sudya, Vaqti...) berilishi mumkin.</p>
+  <code>{{ fields|join:", " }}</code>
+  <p class="mt-2 mb-0">Import integratsiya bilan bir xil tartibda ishlaydi: tashkilotlar nomi bo‘yicha aniqlanadi, takroriy kartochka yaratilmaydi, o‘zgarishlar tarixga yoziladi va xabarnomalar yuboriladi.</p>
+</div></div></div></div>
+{% endblock %}

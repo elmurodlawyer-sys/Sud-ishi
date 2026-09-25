@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Sudlar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Sudlar</h1>{% if user.can_manage_directory %}<a class="btn btn-sm btn-primary" href="{% url 'core:court_create' %}"><i class="bi bi-plus-lg"></i> Yangi sud</a>{% endif %}</div>
+<div class="card mb-3"><div class="card-body py-2"><form class="row g-2" method="get"><div class="col-md-9"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Sud nomi"></div>
+  <div class="col-md-3"><button class="btn btn-sm btn-outline-primary w-100">Qidirish</button></div></form></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-sm table-hover">
+  <thead><tr><th>Nomi</th><th>Turi</th><th>Hudud</th><th class="text-end">Ishlar</th></tr></thead>
+  <tbody>{% for c in page %}<tr {% if user.can_manage_directory %}class="row-link" data-href="{% url 'core:court_edit' c.pk %}"{% endif %}><td>{{ c.name }}{% if not c.is_active %} <span class="badge text-bg-secondary">nofaol</span>{% endif %}</td>
+    <td class="small">{{ c.court_type|default:"—" }}</td><td class="small">{{ c.region|default:"—" }}</td><td class="text-end"><a href="{% url 'cases:list' %}?court={{ c.pk }}">{{ c.case_count }}</a></td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted-2 py-3">Sudlar yo‘q. Ular integratsiya orqali avtomatik qo‘shiladi yoki qo‘lda kiritiladi.</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "includes/pagination.html" %}
+{% endblock %}

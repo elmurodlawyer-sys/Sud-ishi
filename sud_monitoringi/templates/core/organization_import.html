@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}Tashkilotlarni import qilish{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Tashkilotlarni Excel fayldan import qilish</h1><a class="btn btn-sm btn-light" href="{% url 'core:organization_list' %}"><i class="bi bi-arrow-left"></i> Orqaga</a></div>
+<div class="row g-3"><div class="col-lg-6"><div class="card"><div class="card-body">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="row">{% for field in form %}{% include "includes/field.html" %}{% endfor %}</div>
+    <button class="btn btn-primary"><i class="bi bi-upload"></i> Import qilish</button></form>
+  {% if result %}<hr><p>Yangi: <b>{{ result.created }}</b>, yangilangan: <b>{{ result.updated }}</b></p>
+    {% if result.errors %}<div class="alert alert-warning small"><ul class="mb-0">{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}{% endif %}
+</div></div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header">Fayl tuzilishi</div><div class="card-body small">
+  <p>Birinchi qator — ustun nomlari:</p><code>{{ columns|join:" | " }}</code>
+  <ul class="mt-2"><li><b>org_type</b>, <b>region</b> — klassifikator kodi yoki nomi (masalan, <code>inson</code>, <code>Samarqand viloyati</code>);</li>
+  <li><b>parent</b> — yuqori tashkilotning STIR yoki to‘liq nomi;</li><li><b>previous_names</b>, <b>alt_names</b> — bir nechta qiymat “;” bilan;</li>
+  <li>STIR (yoki to‘liq nom) bo‘yicha mavjud tashkilot yangilanadi, qolganlari qo‘shiladi.</li></ul>
+  <p class="mb-0">Namuna fayl: <a href="{% url 'core:organization_list' %}?export=xlsx">joriy ro‘yxatni Excel’ga eksport qiling</a> va ustun nomlarini yuqoridagidek o‘zgartiring.</p>
+</div></div></div></div>
+{% endblock %}

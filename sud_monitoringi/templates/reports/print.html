@@ -1,0 +1,19 @@
+{% load static %}<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><title>{{ title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:11px;color:#111;margin:16px}
+h1{font-size:16px;margin:0 0 4px}.meta{color:#555;margin-bottom:8px}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:3px 5px;vertical-align:top;text-align:left}
+th{background:#1f3a5f;color:#fff}tfoot td{font-weight:bold;background:#e3e9f1}tr:nth-child(even) td{background:#f5f7fa}
+.no-print{margin-bottom:10px}@media print{.no-print{display:none}body{margin:0}@page{size:A4 landscape;margin:10mm}}
+</style></head>
+<body>
+<div class="no-print"><button onclick="window.print()">Chop etish</button> <button onclick="window.close()">Yopish</button></div>
+<h1>{{ title }}</h1>
+<div class="meta">Shakllantirilgan: {{ now|date:"d.m.Y H:i" }}{% for l, v in filters %} · {{ l }}: {{ v }}{% endfor %}</div>
+<table><thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+<tbody>{% for r in rows %}<tr>{% for c in r %}<td>{{ c|linebreaksbr }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ headers|length }}">Ma’lumot yo‘q</td></tr>{% endfor %}</tbody>
+{% if totals %}<tfoot><tr>{% for c in totals %}<td>{{ c }}</td>{% endfor %}</tr></tfoot>{% endif %}
+</table>
+<script>window.addEventListener("load", function(){ setTimeout(function(){ window.print(); }, 300); });</script>
+</body></html>

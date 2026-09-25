@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% load sm %}{% block title %}Nazorat{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Nazoratdagi ishlar</h1></div>
+<div class="row g-3">
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header text-danger"><i class="bi bi-exclamation-octagon"></i> Muddati o‘tib ketgan ({{ overdue|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for d in overdue %}
+      <tr class="row-link" data-href="{% url 'cases:detail' d.case_id %}?tab=muddatlar"><td class="text-danger text-nowrap">{{ d.due_date|date:"d.m.Y" }}<div class="cell-sm">{{ d.due_date|days_until }}</div></td>
+      <td>{{ d.title }}<div class="cell-sm">{{ d.case.case_number }} · {{ d.case.organization }}</div></td><td class="small">{{ d.responsible|default:"—" }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header text-warning-emphasis"><i class="bi bi-alarm"></i> Muddati yaqinlashayotgan ({{ upcoming|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for d in upcoming %}
+      <tr class="row-link" data-href="{% url 'cases:detail' d.case_id %}?tab=muddatlar"><td class="text-nowrap">{{ d.due_date|date:"d.m.Y" }}<div class="cell-sm">{{ d.due_date|days_until }}</div></td>
+      <td>{{ d.title }}<div class="cell-sm">{{ d.case.case_number }} · {{ d.case.organization }}</div></td><td class="small">{{ d.responsible|default:"—" }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-clock-history"></i> {{ stale_days }} kundan ortiq yangilanmagan ishlar ({{ stale|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for c in stale %}
+      <tr class="row-link" data-href="{% url 'cases:detail' c.pk %}"><td>{{ c.case_number }}<div class="cell-sm">{{ c.organization }}</div></td><td class="small">{{ c.status }}</td><td class="small text-nowrap">{{ c.last_activity_at|date:"d.m.Y" }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-flag"></i> Yakunlangan, ammo natija kiritilmagan ({{ no_outcome|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for c in no_outcome %}
+      <tr class="row-link" data-href="{% url 'cases:detail' c.pk %}"><td>{{ c.case_number }}</td><td class="small">{{ c.organization }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-patch-question"></i> Yuridik bo‘lim tasdig‘ini kutayotgan ({{ pending_review|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for c in pending_review %}
+      <tr class="row-link" data-href="{% url 'cases:detail' c.pk %}"><td>{{ c.case_number }}</td><td class="small">{{ c.organization }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-arrow-return-left"></i> Aniqlashtirish uchun qaytarilgan ({{ returned|length }})</div>
+    <div class="table-responsive"><table class="table table-sm table-hover mb-0"><tbody>{% for c in returned %}
+      <tr class="row-link" data-href="{% url 'cases:detail' c.pk %}"><td>{{ c.case_number }}<div class="cell-sm">{{ c.review_comment|truncatechars:100 }}</div></td><td class="small">{{ c.organization }}</td></tr>
+    {% empty %}<tr><td class="text-center text-muted-2 py-3">Yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endblock %}

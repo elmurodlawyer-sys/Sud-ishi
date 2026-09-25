@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}{{ org }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="small text-muted-2"><a href="{% url 'core:organization_list' %}">Tashkilotlar</a></div><h1 class="page-title">{{ org.full_name }}</h1></div>
+  <div class="d-flex gap-2">{% if user.can_manage_directory %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'core:organization_create' %}?parent={{ org.pk }}"><i class="bi bi-diagram-2"></i> Quyi tashkilot qo‘shish</a>
+  <a class="btn btn-sm btn-primary" href="{% url 'core:organization_edit' org.pk %}"><i class="bi bi-pencil-square"></i> Tahrirlash</a>{% endif %}</div></div>
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card mb-3"><div class="card-body"><dl class="dl-grid">
+    <div><dt>To‘liq nomi</dt><dd>{{ org.full_name }}</dd></div><div><dt>Qisqartirilgan nomi</dt><dd>{{ org.short_name|default:"—" }}</dd></div>
+    <div><dt>STIR</dt><dd>{{ org.stir|default:"—" }}</dd></div><div><dt>Tashkilot turi</dt><dd>{{ org.org_type }}</dd></div>
+    <div><dt>Hudud</dt><dd>{{ org.region|default:"—" }}</dd></div><div><dt>Tuman (shahar)</dt><dd>{{ org.district|default:"—" }}</dd></div>
+    <div><dt>Yuqori turuvchi tashkilot</dt><dd>{% if org.parent %}<a href="{% url 'core:organization_detail' org.parent_id %}">{{ org.parent }}</a>{% else %}—{% endif %}</dd></div>
+    <div><dt>Holati</dt><dd>{% if org.is_active %}Faol{% else %}Faol emas{% endif %}</dd></div>
+    <div><dt>Oldingi nomlari</dt><dd>{{ org.previous_names|default:"—" }}</dd></div><div><dt>Muqobil yozilish variantlari</dt><dd>{{ org.alt_names|default:"—" }}</dd></div>
+  </dl><div class="form-text mt-2">Integratsiyada sud ishlari ushbu nomlarning barchasi (kirill/lotin, tutuq belgilari farqidan qat’i nazar) va STIR bo‘yicha aniqlanadi.</div></div></div>
+  {% if children %}<div class="card"><div class="card-header">Quyi tashkilotlar ({{ children|length }})</div><ul class="list-group list-group-flush">
+    {% for c in children %}<li class="list-group-item"><a href="{% url 'core:organization_detail' c.pk %}">{{ c.full_name }}</a> <span class="cell-sm">{{ c.org_type }}</span></li>{% endfor %}</ul></div>{% endif %}
+  </div>
+  <div class="col-lg-5">
+    {% if can_see_cases %}<div class="card mb-3"><div class="card-header d-flex justify-content-between"><span>Sud ishlari ({{ case_total }})</span>
+      <a class="small" href="{% url 'cases:list' %}?organization={{ org.pk }}&include_children=on">Barchasi (quyi tashkilotlar bilan)</a></div>
+      <ul class="list-group list-group-flush small">{% for c in cases %}<li class="list-group-item"><a href="{% url 'cases:detail' c.pk %}">{{ c.case_number }}</a> · {{ c.status }}<div class="cell-sm">{{ c.court|default:"" }}</div></li>
+      {% empty %}<li class="list-group-item text-muted-2">Sud ishlari yo‘q</li>{% endfor %}</ul></div>{% endif %}
+    {% if users %}<div class="card"><div class="card-header">Foydalanuvchilar</div><ul class="list-group list-group-flush small">
+      {% for u in users %}<li class="list-group-item">{{ u }} <span class="cell-sm">{{ u.get_role_display }}</span></li>{% endfor %}</ul></div>{% endif %}
+  </div>
+</div>
+{% endblock %}

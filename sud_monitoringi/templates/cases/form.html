@@ -1,0 +1,46 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">{{ title }}</h1>
+  <a class="btn btn-sm btn-light" href="{% if case %}{% url 'cases:detail' case.pk %}{% else %}{% url 'cases:list' %}{% endif %}"><i class="bi bi-arrow-left"></i> Orqaga</a></div>
+{% include "includes/form_errors.html" %}
+<form method="post">{% csrf_token %}
+<div class="row g-3">
+  <div class="col-xl-8">
+    <div class="card mb-3"><div class="card-header">Sud ishi va tashkilot</div><div class="card-body"><div class="row">
+      {% include "includes/field.html" with field=form.case_number col="col-md-4" %}
+      {% include "includes/field.html" with field=form.organization col="col-md-5" %}
+      {% include "includes/field.html" with field=form.role col="col-md-3" %}
+      {% include "includes/field.html" with field=form.plaintiffs col="col-md-4" %}
+      {% include "includes/field.html" with field=form.defendants col="col-md-4" %}
+      {% include "includes/field.html" with field=form.third_parties col="col-md-4" %}
+    </div></div></div>
+    <div class="card mb-3"><div class="card-header">Sud</div><div class="card-body"><div class="row">
+      {% include "includes/field.html" with field=form.court col="col-md-6" %}
+      {% include "includes/field.html" with field=form.instance col="col-md-3" %}
+      {% include "includes/field.html" with field=form.judge col="col-md-3" %}
+      {% include "includes/field.html" with field=form.category col="col-md-6" %}
+      {% include "includes/field.html" with field=form.claim_amount col="col-md-3" %}
+      {% include "includes/field.html" with field=form.filed_date col="col-md-3" %}
+      {% include "includes/field.html" with field=form.subject %}
+      {% include "includes/field.html" with field=form.source_url %}
+    </div>
+    <div class="form-text">Sud ro‘yxatda bo‘lmasa, uni “Ma’lumotnomalar → Sudlar” bo‘limida qo‘shing.</div></div></div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card mb-3"><div class="card-header">Holat va mas’ul</div><div class="card-body"><div class="row">
+      {% include "includes/field.html" with field=form.status %}
+      {% include "includes/field.html" with field=form.responsible %}
+      {% if form.change_comment %}{% include "includes/field.html" with field=form.change_comment %}{% endif %}
+    </div></div></div>
+    <div class="card mb-3"><div class="card-header">Yakuniy natija</div><div class="card-body"><div class="row">
+      {% include "includes/field.html" with field=form.outcome %}
+      {% include "includes/field.html" with field=form.outcome_date col="col-md-6" %}
+      {% include "includes/field.html" with field=form.agency_result col="col-md-6" %}
+      {% include "includes/field.html" with field=form.awarded_amount %}
+      {% include "includes/field.html" with field=form.outcome_note %}
+    </div></div></div>
+    <button class="btn btn-primary w-100"><i class="bi bi-check2"></i> Saqlash</button>
+  </div>
+</div>
+</form>
+{% endblock %}

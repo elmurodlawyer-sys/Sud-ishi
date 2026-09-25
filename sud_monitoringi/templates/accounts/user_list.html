@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Foydalanuvchilar{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">Foydalanuvchilar</h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'accounts:user_create' %}"><i class="bi bi-person-plus"></i> Yangi foydalanuvchi</a></div>
+<div class="card mb-3"><div class="card-body py-2">
+  <form class="row g-2" method="get">
+    <div class="col-md-5"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Login, F.I.Sh., tashkilot"></div>
+    <div class="col-md-4"><select class="form-select form-select-sm" name="role"><option value="">— barcha rollar —</option>
+      {% for v, l in roles %}<option value="{{ v }}" {% if request.GET.role == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><button class="btn btn-sm btn-outline-primary w-100">Qidirish</button></div>
+  </form></div></div>
+<div class="card"><div class="table-responsive"><table class="table table-hover table-sm align-middle">
+  <thead><tr><th>Login</th><th>F.I.Sh.</th><th>Rol</th><th>Tashkilot</th><th>E-pochta</th><th>Oxirgi kirish</th><th>Holat</th></tr></thead>
+  <tbody>{% for u in page %}
+    <tr class="row-link" data-href="{% url 'accounts:user_edit' u.pk %}"><td>{{ u.username }}</td><td>{{ u.get_full_name }}</td><td class="small">{{ u.get_role_display }}</td>
+      <td class="small">{{ u.organization|default:"—" }}</td><td class="small">{{ u.email }}</td><td class="small">{{ u.last_login|date:"d.m.Y H:i"|default:"—" }}</td>
+      <td>{% if u.is_active %}<span class="badge text-bg-success">faol</span>{% else %}<span class="badge text-bg-secondary">bloklangan</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="7" class="text-center text-muted-2 py-4">Foydalanuvchi topilmadi</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "includes/pagination.html" %}
+<p class="small text-muted-2 mt-3">Foydalanuvchini o‘chirish o‘rniga “Faol” belgisini olib tashlang — harakatlar tarixi saqlanib qoladi.</p>
+{% endblock %}
