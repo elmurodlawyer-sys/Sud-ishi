@@ -90,3 +90,45 @@ class ReportTests(TestCase):
         self.assertTrue(self.client.get(f"/hisobotlar/saqlanganlar/{report.pk}/xlsx/").status_code == 200)
         self.client.force_login(self.users["buxoro"])
         self.assertEqual(self.client.get(f"/hisobotlar/saqlanganlar/{report.pk}/xlsx/").status_code, 403)
+
+
+class MapAndSituationTests(TestCase):
+    def setUp(self):
+        from cases.models import Deadline
+
+        self.orgs = make_orgs()
+        self.users = make_users(self.orgs)
+        make_case(self.orgs["urgut"], number="1-1")
+        make_case(self.orgs["urgut"], number="1-2")
+        case = make_case(self.orgs["buxoro"], number="1-3")
+        make_case(self.orgs["agency"], number="1-4")
+        Deadline.objects.create(case=case, title="Eski", due_date=timezone.localdate() - timedelta(days=3))
+
+    def test_region_map_counts(self):
+        self.client.force_login(self.users["rahbar"])
+        resp = self.client.get("/")
+        regions = {r["code"]: r for r in resp.context["map"]["regions"]}
+        self.assertEqual(len(regions), 14)
+        self.assertEqual((regions["samarqand"]["total"], regions["samarqand"]["open"]), (2, 2))
+        self.assertEqual((regions["buxoro"]["total"], regions["buxoro"]["overdue"]), (1, 1))
+        self.assertEqual(regions["samarqand"]["level"], 1.0)
+        self.assertEqual(resp.context["map"]["central_total"], 1)
+        # Hudud bosilganda shu hudud ishlari ochiladi
+        drill = self.client.get(regions["buxoro"]["url"])
+        self.assertContains(drill, "1-3")
+        self.assertNotContains(drill, ">1-1<")
+
+    def test_map_respects_scope(self):
+        self.client.force_login(self.users["buxoro"])
+        regions = {r["code"]: r for r in self.client.get("/").context["map"]["regions"]}
+        self.assertEqual(regions["samarqand"]["total"], 0)
+        self.assertEqual(regions["buxoro"]["total"], 1)
+
+    def test_situation_page(self):
+        self.client.force_login(self.users["rahbar"])
+        resp = self.client.get("/situatsion-markaz/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "uz-map")
+        texts = " ".join(t["text"] for t in resp.context["ticker"])
+        self.assertIn("Muddati o‘tib ketgan nazorat: 1 ta ish", texts)
+        self.assertEqual(sum(i["value"] for i in resp.context["role_chart"]), 4)

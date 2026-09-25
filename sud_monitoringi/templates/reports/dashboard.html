@@ -10,10 +10,21 @@
   <div class="col-6 col-md-4 col-xl-3">
     <a class="card kpi tone-{{ k.tone }}" href="{{ k.url }}"><div class="card-body">
       <div class="icon"><i class="bi bi-{{ k.icon }}"></i></div>
-      <div><div class="value">{{ k.value|num }}</div><div class="label">{{ k.label }}</div></div>
+      <div><div class="value" data-countup="{{ k.value }}">{{ k.value|num }}</div><div class="label">{{ k.label }}</div></div>
     </div></a>
   </div>
   {% endfor %}
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-xl-8"><div class="card h-100"><div class="card-header d-flex justify-content-between align-items-center">
+    <span>Hududlar kesimida sud ishlari</span>
+    <a class="btn btn-sm btn-outline-primary no-print" href="{% url 'reports:situation' %}"><i class="bi bi-display"></i> Situatsion markaz</a></div>
+    <div class="card-body">{% include "includes/uz_map.html" %}</div></div></div>
+  <div class="col-xl-4"><div class="card h-100"><div class="card-header">Hududlar reytingi</div>
+    <div class="card-body py-2"><ul class="region-rank">
+      {% for r in map.ranking %}<li><a href="{{ r.url }}"><span>{{ r.name }}{% if r.overdue %} <span class="badge text-bg-danger" title="Muddati o‘tgan nazorat">{{ r.overdue }}</span>{% endif %}</span>
+        <b data-countup="{{ r.total }}">{{ r.total }}</b><span class="bar"><span data-width="{{ r.pct }}"></span></span></a></li>{% endfor %}
+    </ul></div></div></div>
 </div>
 <div class="row g-3 mb-3">
   <div class="col-xl-6"><div class="card h-100"><div class="card-header">Yangi ro‘yxatga olingan ishlar dinamikasi (12 oy)</div>
@@ -30,9 +41,7 @@
     <div class="card-body"><div class="chart-box"><canvas id="c-status"></canvas></div></div></div></div>
 </div>
 <div class="row g-3 mb-3">
-  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Hududlar kesimida</div>
-    <div class="card-body"><div class="chart-box tall"><canvas id="c-region"></canvas></div></div></div></div>
-  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Eng ko‘p sud ishi bo‘lgan 10 ta tashkilot</div>
+  <div class="col-12"><div class="card h-100"><div class="card-header">Eng ko‘p sud ishi bo‘lgan 10 ta tashkilot</div>
     <div class="card-body"><div class="chart-box tall"><canvas id="c-org"></canvas></div></div></div></div>
 </div>
 <div class="row g-3">
@@ -54,7 +63,7 @@
       {% empty %}<tr><td colspan="3" class="text-center text-muted-2 py-3">Muddati o‘tgan nazorat yo‘q</td></tr>{% endfor %}</tbody></table></div></div></div>
 </div>
 {{ charts.monthly|json_script:"d-monthly" }}{{ charts.court_type|json_script:"d-court" }}{{ charts.category|json_script:"d-category" }}
-{{ charts.status|json_script:"d-status" }}{{ charts.result|json_script:"d-result" }}{{ charts.region|json_script:"d-region" }}{{ charts.organization|json_script:"d-org" }}
+{{ charts.status|json_script:"d-status" }}{{ charts.result|json_script:"d-result" }}{{ charts.organization|json_script:"d-org" }}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'vendor/chartjs/chart.umd.js' %}"></script>
@@ -64,7 +73,6 @@
   smChart("c-result", "d-result", "doughnut", {legendBottom: true});
   smChart("c-category", "d-category", "hbar");
   smChart("c-status", "d-status", "bar");
-  smChart("c-region", "d-region", "hbar", {single: true});
   smChart("c-org", "d-org", "hbar", {single: true});
 </script>
 {% endblock %}

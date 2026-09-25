@@ -21,6 +21,7 @@ from cases.models import AgencyResult, Case, Deadline, Hearing, HearingStatus, P
 from .analytics import DEFAULT_METRICS, DIMENSIONS, GRANULARITY, METRICS, PERIOD_FIELDS, drilldown_params
 from .exports import export_response
 from .generation import generate_files, querydict_to_params, run_report
+from .geo import region_map
 from .models import GeneratedReport, Periodicity, ReportTemplate
 
 MONTHS = ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"]
@@ -50,10 +51,8 @@ def _distribution(qs, id_field, label_field, param, limit=None, choices=None, sh
     return items
 
 
-@login_required
-def dashboard(request):
-    """Rahbariyat va Yuridik bo'lim uchun monitoring paneli (3.9-band)."""
-    user = request.user
+def _dashboard_context(user):
+    """Dashboard va situatsion markaz uchun umumiy ko'rsatkichlar."""
     base = Case.objects.valid().visible_to(user)
     scope = user.scope_organization_ids()
     today = timezone.localdate()
@@ -128,9 +127,67 @@ def dashboard(request):
         "case", "case__organization", "case__court", "responsible"
     ).order_by("scheduled_at")[:10]
     overdue = deadlines.overdue().select_related("case", "case__organization", "responsible").order_by("due_date")[:10]
-    return render(request, "reports/dashboard.html", {
+    return {
         "kpis": kpis, "charts": charts, "upcoming": upcoming, "overdue": overdue, "counts": counts, "today": today,
+        "map": region_map(base, deadlines, _cases_url), "base": base, "hearings": hearings, "deadlines": deadlines,
+    }
+
+
+@login_required
+def dashboard(request):
+    """Rahbariyat va Yuridik bo'lim uchun monitoring paneli (3.9-band)."""
+    return render(request, "reports/dashboard.html", _dashboard_context(request.user))
+
+
+def _ticker(ctx):
+    """Situatsion markaz pastidagi yuguruvchi qator uchun ogohlantirishlar."""
+    c, today = ctx["counts"], ctx["today"]
+    items = []
+    if c["deadlines_overdue"]:
+        items.append({"tone": "danger", "text": f"Muddati o‘tib ketgan nazorat: {c['deadlines_overdue']} ta ish — zudlik bilan choralar ko‘ring",
+                      "url": _cases_url(nazorat="otgan")})
+    todays = list(ctx["hearings"].filter(scheduled_at__date=today).select_related("case", "case__organization").order_by("scheduled_at")[:5])
+    if todays:
+        items.append({"tone": "warning", "text": f"Bugun {c['hearings_today']} ta sud majlisi", "url": _cases_url(majlis="bugun")})
+        for h in todays:
+            items.append({"tone": "warning", "text": f"{timezone.localtime(h.scheduled_at):%H:%M} — № {h.case.case_number}, {h.case.organization}",
+                          "url": reverse("cases:detail", args=[h.case_id])})
+    if c["deadlines_soon"]:
+        items.append({"tone": "warning", "text": f"Muddati yaqinlashayotgan nazorat: {c['deadlines_soon']} ta ish", "url": _cases_url(nazorat="yaqin")})
+    week_new = ctx["base"].filter(created_at__date__gte=today - timedelta(days=7)).count()
+    if week_new:
+        items.append({"tone": "info", "text": f"So‘nggi 7 kunda {week_new} ta yangi sud ishi ro‘yxatga olindi",
+                      "url": _cases_url(created_from=(today - timedelta(days=7)).isoformat())})
+    if c["pending_review"]:
+        items.append({"tone": "info", "text": f"Yuridik bo‘lim tasdig‘ini kutayotgan ishlar: {c['pending_review']} ta",
+                      "url": _cases_url(review_status=ReviewStatus.PENDING)})
+    if c["stale"]:
+        items.append({"tone": "danger", "text": f"{settings.STALE_CASE_DAYS} kundan ortiq yangilanmagan ishlar: {c['stale']} ta",
+                      "url": _cases_url(nazorat="yangilanmagan")})
+    if not items:
+        items.append({"tone": "success", "text": "Nazoratdagi muammoli holatlar yo‘q", "url": _cases_url()})
+    return items
+
+
+@login_required
+def situation(request):
+    """Katta ekran uchun situatsion markaz sahifasi."""
+    ctx = _dashboard_context(request.user)
+    c = ctx["counts"]
+    decided = ctx["base"].exclude(agency_result="")
+    favor = decided.filter(agency_result__in=[AgencyResult.FAVOR, AgencyResult.PARTIAL]).count()
+    total_decided = decided.count()
+    ctx.update({
+        "ticker": _ticker(ctx),
+        "favor_pct": round(favor * 100 / total_decided) if total_decided else 0,
+        "role_chart": [
+            {"label": "Da’vogar", "value": c["plaintiff"], "url": _cases_url(role=ProceduralRole.PLAINTIFF)},
+            {"label": "Javobgar", "value": c["defendant"], "url": _cases_url(role=ProceduralRole.DEFENDANT)},
+            {"label": "Uchinchi shaxs", "value": c["third"], "url": _cases_url(role=ProceduralRole.THIRD_PARTY)},
+        ],
+        "now": timezone.localtime(),
     })
+    return render(request, "reports/situation.html", ctx)
 
 
 class ReportOptionsForm(forms.Form):

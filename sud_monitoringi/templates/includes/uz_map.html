@@ -1,0 +1,40 @@
+{% load sm %}
+<div class="uz-map-wrap">
+  <svg class="uz-map" viewBox="{{ map.viewbox }}" role="img" aria-label="O‘zbekiston hududlari bo‘yicha sud ishlari xaritasi">
+    <g class="uz-regions">
+      {% for r in map.regions %}
+      <a href="{{ r.url }}" class="uz-region-link" data-tip="{{ r.name }}|{{ r.total }}|{{ r.open }}|{{ r.closed }}|{{ r.overdue }}">
+        <path class="uz-region{% if r.overdue %} has-alert{% endif %}" d="{{ r.d }}" style="--lvl: {{ r.level|stringformat:'s' }}"></path>
+      </a>
+      {% endfor %}
+    </g>
+    <g class="uz-labels">
+      {% for r in map.regions %}
+      <a href="{{ r.url }}" class="uz-label-link" data-tip="{{ r.name }}|{{ r.total }}|{{ r.open }}|{{ r.closed }}|{{ r.overdue }}">
+        {% if r.leader %}<line class="uz-leader" x1="{{ r.cx|stringformat:'s' }}" y1="{{ r.cy|stringformat:'s' }}" x2="{{ r.lx|stringformat:'s' }}" y2="{{ r.ly|stringformat:'s' }}"></line>
+        <circle class="uz-anchor" cx="{{ r.cx|stringformat:'s' }}" cy="{{ r.cy|stringformat:'s' }}" r="2.5"></circle>{% endif %}
+        <g transform="translate({{ r.lx|stringformat:'s' }} {{ r.ly|stringformat:'s' }})">
+          <rect class="uz-label-bg" x="-27" y="-19" width="54" height="36" rx="7"></rect>
+          <text class="uz-total" y="-2" data-countup="{{ r.total }}">{{ r.total }}</text>
+          <text class="uz-sub" y="12"><tspan class="uz-open">{{ r.open }}</tspan><tspan class="uz-sep"> · </tspan><tspan class="uz-closed">{{ r.closed }}</tspan></text>
+          {% if r.overdue %}
+          <g class="uz-alert" transform="translate(27 -19)">
+            <circle class="uz-alert-pulse" r="7"></circle>
+            <circle class="uz-alert-dot" r="7"></circle>
+            <text class="uz-alert-num" y="3.2">{{ r.overdue }}</text>
+          </g>
+          {% endif %}
+        </g>
+      </a>
+      {% endfor %}
+    </g>
+  </svg>
+  <div class="uz-tip" hidden></div>
+</div>
+<div class="uz-legend">
+  <span class="uz-scale"><span>0</span><span class="uz-scale-bar"></span><span>{{ map.max_total|num }}</span> ishlar soni</span>
+  <span><span class="uz-dot uz-dot-open"></span> jarayonda</span>
+  <span><span class="uz-dot uz-dot-closed"></span> yakunlangan</span>
+  <span><span class="uz-dot uz-dot-alert"></span> muddati o‘tgan nazorat</span>
+  {% if map.central_total %}<a href="{{ map.central_url }}" class="uz-central">Markaziy apparat va respublika tashkilotlari: <b data-countup="{{ map.central_total }}">{{ map.central_total }}</b></a>{% endif %}
+</div>

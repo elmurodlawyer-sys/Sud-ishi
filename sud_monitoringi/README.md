@@ -131,7 +131,7 @@ Qo‘lda ishga tushirish: `python manage.py run_integration --all` yoki `--sourc
 | 3.6 Hujjatlar | 7 turdagi hujjat; turi, sanasi, raqami, yuklagan foydalanuvchi va vaqt saqlanadi; yuklab olish huquq tekshiruvi bilan |
 | 3.7 Qidiruv va filtr | TT’dagi 18 mezon + qo‘shimcha (nazorat, tasdiqlash holati, summa oralig‘i), kombinatsiyalangan |
 | 3.8 Avtomatik hisobotlar | 15 ta kesim (1–3 tasini birga tanlash mumkin), 12 ko‘rsatkich; Excel, PDF va chop etish |
-| 3.9 Dashboard | 12 ko‘rsatkich va 7 diagramma; har biri bosilganda tegishli ishlar ro‘yxati ochiladi |
+| 3.9 Dashboard | 12 ko‘rsatkich, 7 diagramma, O‘zbekiston hududlari xaritasi va hududlar reytingi; har biri bosilganda tegishli ishlar ro‘yxati ochiladi. Katta ekran uchun alohida to‘q rangli **“Situatsion markaz”** sahifasi (`/situatsion-markaz/`): animatsiyali ko‘rsatkichlar, xarita, yuguruvchi ogohlantirishlar qatori |
 | 4 Biznes qoidalar | bitta ish — bitta kartochka (bazada ham cheklov bor); jismonan o‘chirish yo‘q; bekor qilish/arxiv sabab bilan; yakunlanganda natija majburiy; muddati o‘tgan va yangilanmagan ishlar nazoratda |
 | 5 Xabarnomalar | 10 holat bo‘yicha tizim ichida; sozlansa e-pochtaga ham; takroriy eslatmalar yuborilmaydi |
 | 6 Xavfsizlik | autentifikatsiya, parol siyosati, kirish urinishlarini cheklash, rollar, harakatlar jurnali (administrator harakatlari alohida belgilanadi), o‘zgarishlar tarixi, HTTPS sozlamalari, zaxira nusxa va tiklash |
@@ -167,3 +167,9 @@ sud_monitoringi/
 ├── templates/       HTML shablonlar
 └── static/          CSS, JS, Bootstrap, Chart.js, shriftlar (lokal)
 ```
+
+## 8. Manbalar va litsenziyalar
+
+- Hudud chegaralari: [geoBoundaries](https://www.geoboundaries.org) — UZB ADM1 (gbOpen), CC BY 4.0.
+  SVG ko‘rinishiga aylantirilgan va `static/geo/uz_regions.json` faylida saqlangan.
+- Bootstrap, Bootstrap Icons (MIT), Chart.js (MIT), DejaVu shriftlari (Bitstream Vera litsenziyasi).

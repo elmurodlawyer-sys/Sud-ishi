@@ -113,3 +113,32 @@ a { text-decoration: none; }
   body { background: #fff; }
   .card { border: none; box-shadow: none; }
 }
+
+/* --- O'zbekiston xaritasi ---------------------------------------------- */
+.uz-map-wrap { position: relative; }
+.uz-map { width: 100%; height: auto; display: block; overflow: visible; --lo: #e3ecf8; --hi: #1f5fae; --stroke: #ffffff; --label-bg: rgba(255,255,255,.88); --label: #13233a; --sub: #6b7a8c; }
+.uz-region { fill: var(--lo); fill: color-mix(in srgb, var(--hi) calc(var(--lvl) * 100%), var(--lo)); stroke: var(--stroke); stroke-width: 1.4; transition: filter .2s ease, stroke-width .2s ease; }
+.uz-region-link:hover .uz-region, .uz-region-link.is-hover .uz-region { filter: brightness(1.12) saturate(1.15); stroke-width: 2.6; }
+.uz-label-bg { fill: var(--label-bg); stroke: rgba(31,95,174,.25); }
+.uz-total { font: 700 16px system-ui, sans-serif; fill: var(--label); text-anchor: middle; }
+.uz-sub { font: 600 10px system-ui, sans-serif; text-anchor: middle; }
+.uz-open { fill: #1f8a4c; } .uz-closed { fill: #6b7a8c; } .uz-sep { fill: var(--sub); }
+.uz-leader { stroke: var(--sub); stroke-width: 1; stroke-dasharray: 2 2; }
+.uz-anchor { fill: var(--label); }
+.uz-alert-dot { fill: #e03131; stroke: #fff; stroke-width: 1.5; }
+.uz-alert-num { font: 700 9px system-ui, sans-serif; fill: #fff; text-anchor: middle; }
+.uz-alert-pulse { fill: #e03131; transform-box: fill-box; transform-origin: center; animation: uz-pulse 1.6s ease-out infinite; }
+@keyframes uz-pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.8); opacity: 0; } }
+.uz-label-link { cursor: pointer; }
+.uz-tip { position: absolute; z-index: 5; pointer-events: none; background: #13233a; color: #fff; border-radius: .5rem; padding: .5rem .7rem; font-size: .8rem; line-height: 1.35; box-shadow: 0 8px 24px rgba(0,0,0,.25); white-space: nowrap; }
+.uz-tip b { font-size: .9rem; }
+.uz-legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; align-items: center; font-size: .78rem; color: var(--sm-muted); margin-top: .5rem; }
+.uz-scale { display: inline-flex; align-items: center; gap: .35rem; }
+.uz-scale-bar { width: 90px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #e3ecf8, #1f5fae); }
+.uz-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; }
+.uz-dot-open { background: #1f8a4c; } .uz-dot-closed { background: #6b7a8c; } .uz-dot-alert { background: #e03131; box-shadow: 0 0 0 3px rgba(224,49,49,.25); }
+.uz-central { margin-left: auto; }
+.region-rank { list-style: none; margin: 0; padding: 0; }
+.region-rank li a { display: grid; grid-template-columns: 1fr auto; gap: .15rem .5rem; padding: .35rem 0; color: inherit; border-bottom: 1px dashed var(--sm-border); }
+.region-rank .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: #eef2f7; overflow: hidden; }
+.region-rank .bar span { display: block; height: 100%; background: #1f5fae; border-radius: 3px; width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }

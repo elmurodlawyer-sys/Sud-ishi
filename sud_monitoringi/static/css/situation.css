@@ -1,0 +1,106 @@
+/* Situatsion markaz — katta ekran uchun to'q rangli ko'rinish */
+body.sc {
+  --bg: #070f1f; --panel: #0d1a33; --panel-2: #10213f; --line: rgba(90,140,220,.22); --text: #e6eefb; --muted: #8aa0c2;
+  --accent: #4dabf7; --green: #37b24d; --red: #f03e3e; --amber: #fcc419;
+  background: radial-gradient(1200px 600px at 20% 0%, #0f2346 0%, var(--bg) 60%) fixed; color: var(--text);
+  min-height: 100vh; display: flex; flex-direction: column; font-size: .92rem;
+}
+.sc a { color: inherit; }
+.sc-muted { color: var(--muted); font-size: .78rem; font-weight: 400; }
+
+.sc-head { display: flex; align-items: center; gap: 1rem; padding: .8rem 1.25rem; border-bottom: 1px solid var(--line); background: rgba(7,15,31,.6); }
+.sc-brand { display: flex; align-items: center; gap: .75rem; }
+.sc-brand > .bi { font-size: 1.8rem; color: var(--accent); }
+.sc-title { font-weight: 700; font-size: 1.2rem; letter-spacing: .2px; }
+.sc-subtitle { color: var(--muted); font-size: .8rem; }
+.sc-clock { margin-left: auto; text-align: right; line-height: 1.1; }
+.sc-clock #sc-time { display: block; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.sc-clock #sc-date { color: var(--muted); font-size: .8rem; }
+.sc-actions { display: flex; gap: .4rem; }
+.sc-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: .5rem; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); }
+.sc-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.sc-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: .8rem; padding: .9rem 1.25rem 0; }
+.sc-kpi { position: relative; overflow: hidden; display: flex; flex-direction: column; padding: .8rem 1rem; border-radius: .7rem;
+  background: linear-gradient(160deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); transition: transform .15s ease, border-color .15s ease; }
+.sc-kpi:hover { transform: translateY(-2px); border-color: var(--accent); }
+.sc-kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent); }
+.sc-kpi.tone-info::before { background: #22b8cf; } .sc-kpi.tone-success::before { background: var(--green); }
+.sc-kpi.tone-warning::before { background: var(--amber); } .sc-kpi.tone-danger::before { background: var(--red); }
+.sc-kpi-label { color: var(--muted); font-size: .78rem; }
+.sc-kpi-value { font-size: 2rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.sc-kpi.tone-danger .sc-kpi-value { color: #ff8787; } .sc-kpi.tone-success .sc-kpi-value { color: #8ce99a; }
+.sc-kpi.tone-warning .sc-kpi-value { color: #ffe066; }
+.sc-kpi > .bi { position: absolute; right: .8rem; top: 50%; transform: translateY(-50%); font-size: 1.9rem; opacity: .18; }
+
+.sc-grid { flex: 1; display: grid; gap: .8rem; padding: .8rem 1.25rem; min-height: 0;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "map roles courts" "map dyn dyn" "map hear hear"; grid-template-rows: auto auto 1fr; }
+.sc-map { grid-area: map; } .sc-roles { grid-area: roles; } .sc-courts { grid-area: courts; }
+.sc-dyn { grid-area: dyn; } .sc-hearings { grid-area: hear; }
+.sc-card { background: linear-gradient(170deg, rgba(16,33,63,.95), rgba(13,26,51,.95)); border: 1px solid var(--line); border-radius: .8rem; padding: .8rem 1rem; min-width: 0; }
+.sc-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; font-weight: 600; margin-bottom: .5rem; }
+.sc-chart { position: relative; height: 170px; }
+.sc-donut { position: relative; height: 190px; }
+.sc-donut-center { position: absolute; left: 0; right: 0; top: 36%; text-align: center; pointer-events: none; line-height: 1.1; }
+.sc-donut-center b { display: block; font-size: 1.6rem; }
+.sc-donut-center span { color: var(--muted); font-size: .75rem; }
+
+.sc-list { list-style: none; margin: 0; padding: 0; }
+.sc-list li a { display: flex; gap: .8rem; align-items: center; padding: .45rem .2rem; border-bottom: 1px solid var(--line); }
+.sc-list li a:hover { background: rgba(77,171,247,.07); }
+.sc-when { flex: none; width: 58px; text-align: center; border-radius: .45rem; background: rgba(77,171,247,.12); color: var(--muted); font-size: .72rem; padding: .2rem 0; line-height: 1.2; }
+.sc-when b { display: block; color: var(--text); font-size: .95rem; }
+.sc-when.is-today { background: rgba(252,196,25,.18); } .sc-when.is-today b { color: #ffe066; }
+.sc-what { min-width: 0; display: flex; flex-direction: column; }
+.sc-what span { color: var(--muted); font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Xarita — to'q mavzu */
+.sc .uz-map { --lo: #16345f; --hi: #3d8bfd; --stroke: #070f1f; --label-bg: rgba(7,15,31,.78); --label: #ffffff; --sub: #8aa0c2; }
+.sc .uz-region { filter: drop-shadow(0 0 6px rgba(61,139,253,.25)); }
+.sc .uz-label-bg { stroke: rgba(77,171,247,.45); }
+.sc .uz-open { fill: #69db7c; } .sc .uz-closed { fill: #a5b4cc; }
+.sc .uz-alert-dot { stroke: #070f1f; }
+.sc .uz-legend { color: var(--muted); }
+.sc .uz-scale-bar { background: linear-gradient(90deg, #16345f, #3d8bfd); }
+.sc .uz-dot-open { background: #69db7c; } .sc .uz-dot-closed { background: #a5b4cc; }
+.sc .uz-tip { background: #e6eefb; color: #0b1730; }
+.sc .uz-central { color: var(--accent); }
+
+/* Yuguruvchi qator */
+.sc-ticker { display: flex; align-items: stretch; border-top: 1px solid var(--line); background: rgba(7,15,31,.85); height: 46px; }
+.sc-ticker-label { flex: none; display: flex; align-items: center; gap: .4rem; padding: 0 1rem; font-weight: 700; color: #0b1730; background: var(--accent); }
+.sc-ticker-viewport { flex: 1; overflow: hidden; position: relative; mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.sc-ticker-track { display: flex; width: max-content; height: 100%; animation: sc-marquee var(--dur, 60s) linear infinite; }
+.sc-ticker-viewport:hover .sc-ticker-track { animation-play-state: paused; }
+.sc-ticker-group { display: flex; align-items: center; }
+.sc-tick { display: inline-flex; align-items: center; gap: .45rem; padding: 0 2rem; white-space: nowrap; }
+.sc-tick .bi { font-size: .5rem; }
+.sc-tick.tone-danger .bi { color: var(--red); } .sc-tick.tone-warning .bi { color: var(--amber); }
+.sc-tick.tone-info .bi { color: var(--accent); } .sc-tick.tone-success .bi { color: var(--green); }
+.sc-tick:hover { color: var(--accent); }
+@keyframes sc-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .sc-ticker-track { animation-duration: 240s; } .uz-alert-pulse { animation: none; } }
+
+@media (max-width: 1399.98px) {
+  .sc-kpis { grid-template-columns: repeat(3, 1fr); }
+  .sc-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "map map" "roles courts" "dyn dyn" "hear hear"; grid-template-rows: auto; }
+}
+@media (max-width: 767.98px) {
+  .sc-head { flex-wrap: wrap; padding: .7rem 1rem; }
+  .sc-title { font-size: 1rem; }
+  .sc-kpis { grid-template-columns: repeat(2, 1fr); padding: .7rem 1rem 0; }
+  .sc-kpi-value { font-size: 1.5rem; }
+  .sc-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "map" "roles" "courts" "dyn" "hear"; padding: .7rem 1rem; }
+}
+
+/* Katta ekranda sahifa aynan bitta ekranga sig'adi, pastdagi qator doim ko'rinadi */
+@media (min-width: 1400px) and (min-height: 760px) {
+  body.sc { height: 100vh; overflow: hidden; }
+  .sc-grid { overflow: hidden; }
+  .sc-map { display: flex; flex-direction: column; min-height: 0; }
+  .sc-map .uz-map-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .sc-map .uz-map { max-height: 100%; width: auto; max-width: 100%; }
+  .sc-hearings { display: flex; flex-direction: column; min-height: 0; }
+  .sc-hearings .sc-list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+}

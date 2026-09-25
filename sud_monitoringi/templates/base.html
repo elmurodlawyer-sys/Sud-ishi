@@ -22,6 +22,7 @@
     <a href="{% url 'cases:list' %}" class="{% if url == 'cases:list' or url == 'cases:detail' or url == 'cases:edit' %}active{% endif %}"><i class="bi bi-folder2-open"></i> Sud ishlari</a>
     {% if user.can_edit_cases %}<a href="{% url 'cases:create' %}" class="{% if url == 'cases:create' %}active{% endif %}"><i class="bi bi-plus-square"></i> Yangi ish</a>{% endif %}
     <a href="{% url 'cases:hearings' %}" class="{% if url == 'cases:hearings' %}active{% endif %}"><i class="bi bi-calendar-week"></i> Sud majlislari</a>
+    <a href="{% url 'reports:situation' %}"><i class="bi bi-display"></i> Situatsion markaz</a>
     <a href="{% url 'cases:control' %}" class="{% if url == 'cases:control' %}active{% endif %}"><i class="bi bi-alarm"></i> Nazorat</a>
     <a href="{% url 'notifications:list' %}" class="{% if request.resolver_match.namespace == 'notifications' %}active{% endif %}"><i class="bi bi-bell"></i> Xabarnomalar {% if unread_notifications_count %}<span class="badge rounded-pill text-bg-danger">{{ unread_notifications_count }}</span>{% endif %}</a>
     <div class="section">Tahlil</div>

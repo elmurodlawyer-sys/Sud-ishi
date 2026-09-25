@@ -1,0 +1,97 @@
+{% load static sm %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Situatsion markaz — Sud monitoringi</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/situation.css' %}">
+</head>
+<body class="sc">
+<header class="sc-head">
+  <div class="sc-brand"><i class="bi bi-bank2"></i>
+    <div><div class="sc-title">Sud monitoringi — situatsion markaz</div>
+      <div class="sc-subtitle">{% if user.is_central %}Ijtimoiy himoya milliy agentligi va tizimidagi tashkilotlar{% else %}{{ user.organization }} va quyi tashkilotlar{% endif %}</div></div>
+  </div>
+  <div class="sc-clock"><span id="sc-time">{{ now|date:"H:i" }}</span><span id="sc-date">{{ now|date:"d.m.Y" }}</span></div>
+  <div class="sc-actions">
+    <button class="sc-btn" type="button" id="sc-full" title="To‘liq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
+    <a class="sc-btn" href="{% url 'reports:dashboard' %}" title="Dashboardga qaytish"><i class="bi bi-x-lg"></i></a>
+  </div>
+</header>
+
+<section class="sc-kpis">
+  <a class="sc-kpi" href="{% url 'cases:list' %}"><span class="sc-kpi-label">Jami sud ishlari</span><span class="sc-kpi-value" data-countup="{{ counts.total }}">{{ counts.total }}</span><i class="bi bi-folder2-open"></i></a>
+  <a class="sc-kpi tone-info" href="{% url 'cases:list' %}?state=open"><span class="sc-kpi-label">Jarayonda</span><span class="sc-kpi-value" data-countup="{{ counts.open }}">{{ counts.open }}</span><i class="bi bi-hourglass-split"></i></a>
+  <a class="sc-kpi tone-success" href="{% url 'cases:list' %}?state=closed"><span class="sc-kpi-label">Yakunlangan</span><span class="sc-kpi-value" data-countup="{{ counts.closed }}">{{ counts.closed }}</span><i class="bi bi-check2-circle"></i></a>
+  <a class="sc-kpi tone-warning" href="{% url 'cases:list' %}?majlis=bugun"><span class="sc-kpi-label">Bugungi sud majlislari</span><span class="sc-kpi-value" data-countup="{{ counts.hearings_today }}">{{ counts.hearings_today }}</span><i class="bi bi-calendar-event"></i></a>
+  <a class="sc-kpi tone-danger" href="{% url 'cases:list' %}?nazorat=otgan"><span class="sc-kpi-label">Muddati o‘tgan nazorat</span><span class="sc-kpi-value" data-countup="{{ counts.deadlines_overdue }}">{{ counts.deadlines_overdue }}</span><i class="bi bi-exclamation-octagon"></i></a>
+  <a class="sc-kpi tone-success" href="{% url 'cases:list' %}?state=closed"><span class="sc-kpi-label">Agentlik foydasiga hal qilingan</span><span class="sc-kpi-value" data-countup="{{ favor_pct }}" data-suffix="%">{{ favor_pct }}%</span><i class="bi bi-award"></i></a>
+</section>
+
+<main class="sc-grid">
+  <section class="sc-card sc-map">
+    <div class="sc-card-head"><span>Hududlar kesimida sud ishlari</span><span class="sc-muted">hududni bosing — ishlar ro‘yxati ochiladi</span></div>
+    {% include "includes/uz_map.html" %}
+  </section>
+  <section class="sc-card sc-roles">
+    <div class="sc-card-head"><span>Protsessual maqom</span></div>
+    <div class="sc-donut"><canvas id="c-role"></canvas><div class="sc-donut-center"><b data-countup="{{ counts.total }}">{{ counts.total }}</b><span>jami</span></div></div>
+  </section>
+  <section class="sc-card sc-courts">
+    <div class="sc-card-head"><span>Sud turlari</span></div>
+    <div class="sc-chart"><canvas id="c-court"></canvas></div>
+  </section>
+  <section class="sc-card sc-dyn">
+    <div class="sc-card-head"><span>Yangi ishlar dinamikasi (12 oy)</span></div>
+    <div class="sc-chart"><canvas id="c-monthly"></canvas></div>
+  </section>
+  <section class="sc-card sc-hearings">
+    <div class="sc-card-head"><span>Yaqin sud majlislari</span><a href="{% url 'cases:hearings' %}" class="sc-muted">barchasi</a></div>
+    <ul class="sc-list">
+      {% for h in upcoming|slice:":6" %}
+      <li><a href="{% url 'cases:detail' h.case_id %}">
+        <span class="sc-when{% if h.scheduled_at|date:'Y-m-d' == today|date:'Y-m-d' %} is-today{% endif %}">{{ h.scheduled_at|date:"d.m" }}<b>{{ h.scheduled_at|date:"H:i" }}</b></span>
+        <span class="sc-what"><b>№ {{ h.case.case_number }}</b><span>{{ h.case.organization }}</span></span>
+      </a></li>
+      {% empty %}<li class="sc-muted p-2">Rejalashtirilgan majlislar yo‘q</li>{% endfor %}
+    </ul>
+  </section>
+</main>
+
+<footer class="sc-ticker">
+  <div class="sc-ticker-label"><i class="bi bi-broadcast"></i> Nazorat</div>
+  <div class="sc-ticker-viewport">
+    <div class="sc-ticker-track" style="--dur: {{ ticker|length|add:4 }}0s">
+      {% for copy in "ab" %}<div class="sc-ticker-group"{% if forloop.last %} aria-hidden="true"{% endif %}>
+        {% for t in ticker %}<a class="sc-tick tone-{{ t.tone }}" href="{{ t.url }}"{% if forloop.parentloop.last %} tabindex="-1"{% endif %}><i class="bi bi-circle-fill"></i> {{ t.text }}</a>{% endfor %}
+      </div>{% endfor %}
+    </div>
+  </div>
+</footer>
+
+{{ role_chart|json_script:"d-role" }}{{ charts.court_type|json_script:"d-court" }}{{ charts.monthly|json_script:"d-monthly" }}
+<script src="{% static 'vendor/chartjs/chart.umd.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+  Chart.defaults.color = "#9fb3cf";
+  Chart.defaults.borderColor = "rgba(120,160,220,.12)";
+  Chart.defaults.font.family = "system-ui, sans-serif";
+  smChart("c-role", "d-role", "doughnut", {legendBottom: true, colors: ["#37b24d", "#f03e3e", "#4dabf7"], cutout: "68%"});
+  smChart("c-court", "d-court", "hbar", {colors: ["#4dabf7", "#20c997", "#fcc419", "#ff8787", "#b197fc", "#74c0fc"]});
+  smChart("c-monthly", "d-monthly", "line", {line: "#4dabf7"});
+  (function () {
+    var t = document.getElementById("sc-time"), d = document.getElementById("sc-date");
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function tick() { var n = new Date(); t.textContent = pad(n.getHours()) + ":" + pad(n.getMinutes()) + ":" + pad(n.getSeconds());
+      d.textContent = pad(n.getDate()) + "." + pad(n.getMonth() + 1) + "." + n.getFullYear(); }
+    tick(); setInterval(tick, 1000);
+    document.getElementById("sc-full").addEventListener("click", function () {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    });
+  })();
+</script>
+</body>
+</html>
