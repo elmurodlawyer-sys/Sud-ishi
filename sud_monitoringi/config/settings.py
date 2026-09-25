@@ -122,10 +122,12 @@ if env("DB_ENGINE", "sqlite").lower() in ("postgres", "postgresql"):
         }
     }
 else:
+    SQLITE_PATH = Path(env("SQLITE_PATH", str(BASE_DIR / "data" / "db.sqlite3")))
+    SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": env("SQLITE_PATH", str(BASE_DIR / "data" / "db.sqlite3")),
+            "NAME": str(SQLITE_PATH),
         }
     }
 
