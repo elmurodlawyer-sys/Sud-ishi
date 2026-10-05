@@ -9,6 +9,7 @@ sanasi bo'yicha kamayish tartibida o'qiladi va N ta mos ish topilganda to'xtaydi
 """
 import datetime as dt
 import json
+import os
 import re
 import sys
 import time
@@ -70,7 +71,8 @@ def run(court_type: str, need: int):
     out.mkdir(parents=True, exist_ok=True)
     found, seen, checked = [p.stem.replace("_", "/") for p in out.glob("*.json")][:need], set(), 0
     today = dt.date.today()
-    end = today
+    # Qayta ishga tushirishda oldin o'qilgan haftalarni o'tkazib yuborish uchun: FROM_<TUR>=YYYY-MM-DD
+    end = dt.date.fromisoformat(os.environ.get(f"FROM_{court_type}", today.isoformat()))
     while len(found) < need and checked < MAX_PDFS and end.year == 2026:
         start = max(end - dt.timedelta(days=WINDOW_DAYS - 1), dt.date(2026, 1, 1))
         items = [i for i in window_items(court_type, start, end) if i["id"] not in seen]
