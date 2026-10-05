@@ -30,7 +30,13 @@ const CATEGORIES = {
   ],
 };
 
-const ORG = new RegExp(
+// Ba'zi PDF'larda shrift xatosi sababli "и" harfi matndan tushib qoladi ("вилоят" -> "влоят").
+// Shuning uchun barcha shablonlarda "и" ixtiyoriy qilinadi.
+function rx_(src, flags) {
+  return new RegExp(src.replace(/[иИ]/g, '[иИ]?'), flags);
+}
+
+const ORG = rx_(
   '(Инсон|Inson)\\s*[»"”\']?\\s*(ижтимоий|ijtimoiy)\\s+(хизмат|xizmat|марказ|markaz)' +
   '|(ижтимоий|ijtimoiy)\\s+(ҳимоя|химоя|himoya)\\s+(миллий\\s+|milliy\\s+)?(агентлиг|agentlig)' +
   '|тиббий-ижтимоий\\s+эксперт\\s+комисси' +
@@ -117,14 +123,14 @@ function pdfText_(pdfId) {
 
 /** Kirish qismida tashkilot nomidan oldingi so'z bo'yicha rolni aniqlaydi. */
 function role_(flat) {
-  const cut = flat.search(/А\s?Н\s?И\s?Қ\s?Л\s?А\s?Д\s?И|аниқлади/);
+  const cut = flat.search(rx_('А\\s?Н\\s?И?\\s?Қ\\s?Л\\s?А\\s?Д\\s?И|аниқлади'));
   const head = cut > 300 ? flat.substring(0, cut) : flat.substring(0, 4000);
   const m = head.match(ORG);
   if (!m) return 'matnda tilga olingan';
   const i = head.indexOf(m[0]);
   const before = head.substring(Math.max(0, i - 160), i);
   const after = head.substring(i, i + 260);
-  const last = [['javobgar', /жавобгар/gi], ['davogar', /даъвогар|аризачи/gi], ['uchinchi shaxs', /учинчи\s+шахс/gi]]
+  const last = [['javobgar', /жавобгар/gi], ['davogar', rx_('даъвогар|аризачи', 'gi')], ['uchinchi shaxs', rx_('учинчи\\s+шахс', 'gi')]]
     .map(([r, rx]) => [r, Math.max(-1, ...[...before.matchAll(rx)].map(x => x.index))])
     .sort((a, b) => b[1] - a[1])[0];
   if (last[1] < 0) return /хулоса/i.test(after) ? 'xulosa beruvchi' : 'boshqa';
