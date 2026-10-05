@@ -7,3 +7,5 @@ data/*.db
 data/*.db-*
 .env*.local
 data/*.csv
+data/latest/
+__pycache__/
