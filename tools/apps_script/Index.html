@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=PT+Serif:wght@700&display=swap">
+<style>
+  :root {
+    --bg: #f3f5f7; --paper: #fff; --ink: #1b2430; --muted: #5b6878; --line: #d9dfe6;
+    --accent: #1f5a6b; --accent-soft: #e2eef1; --neg: #a13a2e; --neg-soft: #f7e6e3; --pos: #2e6b3f; --pos-soft: #e3f1e6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.5 "Golos Text", "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 20px; }
+  h1 { font: 700 26px/1.2 "PT Serif", Georgia, serif; margin: 0; }
+  .sub { color: var(--muted); margin: 4px 0 0; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+  label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  input[type=date], select { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
+  .checks { display: flex; gap: 14px; align-items: center; padding-bottom: 8px; color: var(--ink); font-size: 14px; }
+  button { font: 600 14px/1 inherit; font-family: inherit; padding: 11px 18px; border-radius: 6px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .55; cursor: wait; }
+  button.ghost { background: var(--accent-soft); color: var(--accent); }
+  .status { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 1.5em; }
+  .bar { height: 6px; background: var(--accent-soft); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; min-width: 120px; }
+  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .filters input[type=search] { flex: 1 1 220px; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+  .pill.javobgar { background: var(--neg-soft); color: var(--neg); }
+  .pill.davogar { background: var(--pos-soft); color: var(--pos); }
+  details summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+  details p { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 70ch; }
+  a { color: var(--accent); }
+  .empty { color: var(--muted); padding: 20px 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Sud qarorlari monitoringi</h1>
+    <p class="sub">public.sud.uz dagi qarorlardan Ijtimoiy himoya milliy agentligi tizimi ishtirok etganlarini topadi: Agentlik, hududiy boshqarmalar, "Inson" markazlari, TIEK, "Muruvvat" va "Saxovat" uylari.</p>
+  </header>
+
+  <section class="card">
+    <form id="f">
+      <label>Boshlanish<input type="date" id="from" required></label>
+      <label>Tugash<input type="date" id="to" required></label>
+      <div class="checks">
+        <label style="display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" id="adm" checked> Ma'muriy</label>
+        <label style="display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" id="civ" checked> Fuqarolik</label>
+      </div>
+      <button type="submit" id="go">Qidirish</button>
+      <button type="button" class="ghost" id="refresh">Jadvalni yangilash</button>
+    </form>
+    <div class="status" id="status">Davrni tanlang va "Qidirish" ni bosing. Avval tekshirilgan qarorlar qayta o'qilmaydi.</div>
+    <div class="bar" id="bar" hidden><div></div></div>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="card">
+    <div class="filters">
+      <input type="search" id="q" placeholder="Ish raqami, sud yoki matn bo'yicha qidirish">
+      <select id="ft"><option value="">Barcha sudlar</option><option>Ma'muriy</option><option>Fuqarolik</option></select>
+      <select id="fr"><option value="">Barcha rollar</option><option value="javobgar">Javobgar</option><option value="davogar">Da'vogar / arizachi</option><option value="vakil">Vakil</option><option value="uchinchi shaxs">Uchinchi shaxs</option><option value="xulosa beruvchi">Xulosa beruvchi</option><option value="boshqa">Boshqa</option></select>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Sana</th><th>Ish raqami</th><th>Sud turi</th><th>Sud</th><th>Toifa</th><th>Natija</th><th>Tashkilot roli</th><th>PDF</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Yuklanmoqda…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const ymd = d => d.toISOString().slice(0, 10);
+  let ROWS = [];
+
+  $('to').value = ymd(new Date());
+  $('from').value = ymd(new Date(Date.now() - 7 * 86400000));
+
+  const ROLE_LABEL = {javobgar: 'Javobgar', davogar: "Da'vogar / arizachi", vakil: 'Vakil', 'uchinchi shaxs': 'Uchinchi shaxs',
+    'xulosa beruvchi': 'Xulosa beruvchi', boshqa: 'Boshqa', 'matnda tilga olingan': 'Matnda tilga olingan'};
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+
+  function render() {
+    const q = $('q').value.toLowerCase(), ft = $('ft').value, fr = $('fr').value;
+    const list = ROWS.filter(r => (!ft || r.type === ft) && (!fr || r.role === fr) &&
+      (!q || (r.number + ' ' + r.court + ' ' + r.snippet + ' ' + r.category).toLowerCase().includes(q)))
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    $('rows').innerHTML = list.length ? list.map(r => `
+      <tr>
+        <td class="num">${esc(r.date)}</td>
+        <td class="num"><b>${esc(r.number)}</b><details><summary>Matndan parcha</summary><p>${esc(r.snippet)}</p></details></td>
+        <td>${esc(r.type)}</td><td>${esc(r.court)}</td><td>${esc(r.category)}</td><td>${esc(r.result)}</td>
+        <td><span class="pill ${esc(r.role)}">${esc(ROLE_LABEL[r.role] || r.role)}</span></td>
+        <td><a href="${esc(r.pdf)}" target="_blank" rel="noopener">Ochish</a></td>
+      </tr>`).join('') : '<tr><td colspan="8" class="empty">Hozircha topilgan qaror yo\'q. Yuqoridan davrni tanlab qidiring.</td></tr>';
+    const by = k => ROWS.filter(r => r.role === k).length;
+    $('stats').innerHTML = [['Jami topilgan', ROWS.length], ['Javobgar', by('javobgar')], ["Da'vogar / arizachi", by('davogar')], ['Vakil', by('vakil')]]
+      .map(([l, n]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  }
+
+  function load() {
+    google.script.run.withSuccessHandler(r => { ROWS = r; render(); })
+      .withFailureHandler(e => { $('rows').innerHTML = `<tr><td colspan="8" class="empty">Jadvalni o'qib bo'lmadi: ${esc(e.message)}</td></tr>`; })
+      .getRows();
+  }
+
+  function setBusy(b) { $('go').disabled = b; $('refresh').disabled = b; $('bar').hidden = !b; }
+
+  $('f').addEventListener('submit', e => {
+    e.preventDefault();
+    const types = [$('adm').checked && 'ADMINISTRATIVE', $('civ').checked && 'CIVIL'].filter(Boolean);
+    if (!types.length) { $('status').textContent = 'Kamida bitta sud turini tanlang.'; return; }
+    let total = 0, found = 0, first = null;
+    setBusy(true);
+    const step = () => {
+      $('status').textContent = `Qarorlar o'qilmoqda… tekshirildi: ${total}, topildi: ${found}`;
+      google.script.run.withSuccessHandler(r => {
+        total += r.checked; found += r.found;
+        if (first === null) first = r.checked + r.remaining;
+        $('bar').firstElementChild.style.width = first ? Math.round(100 * (first - r.remaining) / first) + '%' : '100%';
+        load();
+        if (r.remaining > 0 && r.checked > 0) step();
+        else { setBusy(false); $('status').textContent = `Tayyor. Tekshirildi: ${total} ta qaror, yangi topilgan: ${found} ta.` + (r.remaining ? ` ${r.remaining} ta qaror o'qilmadi, qayta urinib ko'ring.` : ''); }
+      }).withFailureHandler(err => {
+        setBusy(false);
+        $('status').textContent = `Xato: ${err.message}. Tekshirilganlari saqlandi, "Qidirish" ni qayta bossangiz davom etadi.`;
+      }).searchChunk($('from').value, $('to').value, types);
+    };
+    step();
+  });
+
+  $('refresh').addEventListener('click', load);
+  ['q', 'ft', 'fr'].forEach(id => $(id).addEventListener('input', render));
+  load();
+</script>
+</body>
+</html>
