@@ -39,6 +39,19 @@ const ORG = new RegExp(
 const HEADER = ['Sud turi', 'Ish raqami', 'Sud', 'Instansiya', 'Sana', 'Toifa', 'Natija',
   'Tashkilot roli', 'Matndan parcha', 'PDF', 'ID'];
 
+/** 1-qadam: sud.uz API'si Google serverlaridan ochilishini tekshiradi. Natija "Bajarish jurnali"da chiqadi. */
+function testApi() {
+  const d = JSON.parse(UrlFetchApp.fetch(API + '/publications/list?court_type=ADMINISTRATIVE&page=0&size=1').getContentText());
+  Logger.log('API ishlayapti. Ma\'muriy qarorlar soni: ' + d.totalElements + ', birinchisi: ' + d.content[0].case_number);
+}
+
+/** 2-qadam: bitta PDF matnini o'qishni sinaydi (Drive API xizmati qo'shilgan bo'lishi kerak). */
+function testPdf() {
+  const d = JSON.parse(UrlFetchApp.fetch(API + '/publications/list?court_type=ADMINISTRATIVE&page=0&size=1').getContentText());
+  const text = pdfText_(d.content[0].pdf.id);
+  Logger.log('PDF matni o\'qildi, ' + text.length + ' belgi. Boshi: ' + text.substring(0, 300));
+}
+
 function setup() {
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('run').timeBased().everyDays(1).atHour(7).create();
