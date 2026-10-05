@@ -120,7 +120,8 @@ def scan_one(row):
         with urllib.request.urlopen(f"{API}/public/onStream/{pdf_id}", timeout=180) as r:
             data = r.read()
         doc = pymupdf.open(stream=data, filetype="pdf")
-        text = "\n".join(p.get_text() for p in doc)
+        # Ba'zi PDF'larda shrift xaritasi buzilgan: "и" harfi U+0002 bo'lib chiqadi.
+        text = "\n".join(p.get_text() for p in doc).replace("\x02", "и")
         flat = re.sub(r"\s+", " ", text)
         hits, snippet = [], ""
         for name, rx in PATTERNS.items():
@@ -136,7 +137,9 @@ def scan_one(row):
 
 def scan_pdfs():
     con = db()
-    todo = con.execute("SELECT id, pdf_id FROM decisions WHERE scanned = 0 AND pdf_id IS NOT NULL").fetchall()
+    todo = con.execute("""SELECT d.id, d.pdf_id FROM decisions d
+        JOIN (SELECT scope, COUNT(*) AS n FROM decisions GROUP BY scope) s ON s.scope = d.scope
+        WHERE d.scanned = 0 AND d.pdf_id IS NOT NULL ORDER BY s.n, d.id""").fetchall()
     print(f"O'qilishi kerak: {len(todo)} ta PDF")
     done = found = 0
     with ThreadPoolExecutor(WORKERS) as ex:
