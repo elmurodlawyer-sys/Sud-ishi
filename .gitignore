@@ -9,3 +9,4 @@ data/*.db-*
 data/*.csv
 data/latest/
 __pycache__/
+data/roles/
