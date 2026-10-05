@@ -69,13 +69,16 @@ def window_items(court_type: str, start: dt.date, end: dt.date):
 def run(court_type: str, need: int):
     out = OUT_DIR / court_type
     out.mkdir(parents=True, exist_ok=True)
+    # O'qilgan qarorlar ro'yxati: qayta ishga tushirilganda ular qayta yuklanmaydi.
+    done_file = OUT_DIR / f"{court_type}.checked"
+    done = set(done_file.read_text().split()) if done_file.exists() else set()
     found, seen, checked = [p.stem.replace("_", "/") for p in out.glob("*.json")][:need], set(), 0
     today = dt.date.today()
     # Qayta ishga tushirishda oldin o'qilgan haftalarni o'tkazib yuborish uchun: FROM_<TUR>=YYYY-MM-DD
     end = dt.date.fromisoformat(os.environ.get(f"FROM_{court_type}", today.isoformat()))
     while len(found) < need and checked < MAX_PDFS and end.year == 2026:
         start = max(end - dt.timedelta(days=WINDOW_DAYS - 1), dt.date(2026, 1, 1))
-        items = [i for i in window_items(court_type, start, end) if i["id"] not in seen]
+        items = [i for i in window_items(court_type, start, end) if i["id"] not in seen and i["id"] not in done]
         seen.update(i["id"] for i in items)
         # Eng so'nggisi birinchi; kelajak sanalari (ma'lumot xatosi) oxiriga.
         items.sort(key=lambda i: (i.get("hearing_date") or "") if (i.get("hearing_date") or "") <= today.isoformat() else "", reverse=True)
@@ -85,6 +88,9 @@ def run(court_type: str, need: int):
             with ThreadPoolExecutor(WORKERS) as ex:
                 for item, hits, data, text in ex.map(check, batch):
                     checked += 1
+                    if data is not None:
+                        with done_file.open("a") as f:
+                            f.write(item["id"] + "\n")
                     # Bitta ishning bir nechta hujjati bo'lishi mumkin — ish raqami bo'yicha bir marta olinadi.
                     if hits and len(found) < need and item["case_number"] not in found:
                         name = item["case_number"].replace("/", "_")
@@ -96,6 +102,8 @@ def run(court_type: str, need: int):
                         print(f"  + {item['case_number']} ({item.get('hearing_date')}) {hits}", flush=True)
             if len(found) >= need:
                 break
+            if (k // len(batch)) % 5 == 4:
+                print(f"  ... {k + len(batch)}/{len(items)}", flush=True)
         print(f"  o'qildi: {checked}, topildi: {len(found)}", flush=True)
         end = start - dt.timedelta(days=1)
     print(f"{court_type}: YAKUN — {len(found)} ta topildi, {checked} ta PDF o'qildi", flush=True)
