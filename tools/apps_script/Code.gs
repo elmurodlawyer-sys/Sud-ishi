@@ -104,7 +104,9 @@ function list_(courtType, cat, start, end) {
 
 /** PDF'ni Drive orqali vaqtincha Google Docs'ga aylantirib, matnini oladi. */
 function pdfText_(pdfId) {
-  const blob = UrlFetchApp.fetch(API + '/public/onStream/' + pdfId).getBlob().setName(pdfId + '.pdf');
+  // sud.uz PDF'ni "application/octet-stream" turi bilan beradi; Drive uni aylantirishi uchun turni aniq ko'rsatamiz.
+  const blob = UrlFetchApp.fetch(API + '/public/onStream/' + pdfId).getBlob()
+    .setContentType('application/pdf').setName(pdfId + '.pdf');
   const file = Drive.Files.create({name: pdfId, mimeType: 'application/vnd.google-apps.document'}, blob);
   try {
     return DocumentApp.openById(file.id).getBody().getText().replace(/\u0002/g, 'и');
