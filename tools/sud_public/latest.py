@@ -26,7 +26,7 @@ OUT_DIR = ROOT / "data" / "latest"
 COURT_TYPES = ["CIVIL", "ADMINISTRATIVE", "ECONOMIC"]
 WINDOW_DAYS = 7
 MAX_PDFS = 4000  # bitta sud turi uchun o'qiladigan PDF'lar chegarasi
-WORKERS = 1  # har bir sud turiga; 3 tur birga = 3 parallel so'rov
+WORKERS = int(os.environ.get("WORKERS", 1))  # har bir sud turiga; standart: 3 tur x 1 = 3 parallel so'rov
 
 
 def fetch_pdf(pdf_id: str) -> bytes:
