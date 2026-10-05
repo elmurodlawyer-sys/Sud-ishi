@@ -41,8 +41,9 @@ SCOPES = [
 
 PATTERNS = {
     "inson_markazi": re.compile(
-        r"[«\"“„]\s*(Инсон|Inson)\s*[»\"”]"
-        r"|(Инсон|Inson)\s+(ижтимоий|ijtimoiy)\s+(хизмат|xizmat)"
+        # Faqat to'liq nom: "Инсон" ijtimoiy xizmatlar markazi. Qo'shtirnoqdagi "Инсон"ning o'zi
+        # yetarli emas — masalan, "INSON" sug'urta kompaniyasi ham shunday yoziladi.
+        r"(Инсон|Inson)\s*[»\"”']?\s*(ижтимоий|ijtimoiy)\s+(хизмат|xizmat|марказ|markaz)"
         r"|(ижтимоий|ijtimoiy)\s+(хизматлар|xizmatlar)\s+(маркази|markazi)", re.I),
     "ijtimoiy_himoya_agentligi": re.compile(
         r"(ижтимоий|ijtimoiy)\s+(ҳимоя|химоя|himoya)\s+(миллий\s+|milliy\s+)?(агентлиг|agentlig)"
