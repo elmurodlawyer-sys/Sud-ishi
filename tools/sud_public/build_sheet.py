@@ -18,7 +18,7 @@ TYPES = {"CIVIL": "Fuqarolik", "ADMINISTRATIVE": "Ma'muriy", "ECONOMIC": "Iqtiso
 RESULTS = {"FULFILLED": "Qanoatlantirilgan", "PARTIALLY_FULFILLED": "Qisman qanoatlantirilgan",
            "REFUSED": "Rad etilgan", "CASE_ENDED": "Ish yuritish tugatilgan",
            "LEFT_WITHOUT_CONSIDERATION": "Ko'rmasdan qoldirilgan"}
-INSTANCES = {"FIRST": "Birinchi", "APPEAL": "Apellyatsiya", "CASSATION": "Kassatsiya", "REVISION": "Taftish"}
+INSTANCES = {"FIRST": "Birinchi", "APPEAL": "Apellyatsiya", "CASSATION": "Kassatsiya", "REVISION": "Taftish", "INSPECTION": "Taftish"}
 SECTIONS = {
     "Tashkilot roli": r"Taraflar va tashkilotning roli",
     "Talab": r"Talab mazmuni",
@@ -31,12 +31,14 @@ SECTIONS = {
 
 
 def section(md: str, title_rx: str) -> str:
-    m = re.search(rf"^#*\s*(\d+\.\s*)?\**{title_rx}[^\n]*\n(.*?)(?=^#*\s*\d+\.\s*\**[A-ZÀ-ʼa-z]|^#{{1,3}} |\Z)",
-                  md, re.S | re.M)
-    if not m:
-        return ""
-    text = re.sub(r"\n{2,}", "\n", m.group(2)).strip()
-    return text[:49000]  # Google Sheets katagi chegarasi 50 000 belgi
+    """"## N. Sarlavha" bilan boshlanadigan bo'limning matnini qaytaradi."""
+    parts = re.split(r"^#{1,3}\s+", md, flags=re.M)
+    for part in parts:
+        head, _, body = part.partition("\n")
+        if re.search(title_rx, head):
+            text = re.sub(r"\n{2,}", "\n", body).strip()
+            return text[:49000]  # Google Sheets katagi chegarasi 50 000 belgi
+    return ""
 
 
 def main():
